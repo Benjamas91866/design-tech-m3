@@ -75,7 +75,6 @@
 
         <!-- Student Portal View -->
         <div id="viewStudent" class="hidden space-y-6">
-            <!-- Fixed Dark Gradient Background Header -->
             <div class="bg-gradient-to-r from-[#0f4c81] to-[#1b6ca8] text-white p-6 rounded-2xl shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <span class="inline-block bg-white/20 text-xs px-3 py-1 rounded-full mb-2">พื้นที่เรียนรู้นักเรียน</span>
@@ -169,6 +168,8 @@
                             <option value="all">-- ทุกสถานะ --</option>
                             <option value="รอตรวจ">รอตรวจ</option>
                             <option value="ตรวจแล้ว">ตรวจแล้ว</option>
+                            <option value="ส่งคืนให้แก้ไข">ส่งคืนให้แก้ไข</option>
+                            <option value="ยังไม่ส่ง">ยังไม่ส่ง</option>
                         </select>
                     </div>
                     <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2">
@@ -369,6 +370,18 @@
             return found ? found.name : `นักเรียนรหัส ${id}`;
         }
 
+        function renderStatusBadge(status) {
+            if (status === 'ตรวจแล้ว') {
+                return '<span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-emerald-100 text-emerald-700">ตรวจแล้ว</span>';
+            } else if (status === 'รอตรวจ') {
+                return '<span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-amber-100 text-amber-700">รอตรวจ</span>';
+            } else if (status === 'ส่งคืนให้แก้ไข') {
+                return '<span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-orange-100 text-orange-700">ส่งคืนให้แก้ไข</span>';
+            } else {
+                return '<span class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-rose-100 text-rose-700">ยังไม่ส่ง</span>';
+            }
+        }
+
         function checkAutoLogin() {
             const user = localStorage.getItem('dt_current_user');
             if (user) {
@@ -497,8 +510,37 @@
 
         function renderStudentAssignments() {
             const grid = document.getElementById('studentAssignmentsGrid');
+            const mySubs = state.submissions.filter(s => String(s.studentId) === String(state.currentUser.id));
+
             grid.innerHTML = state.activities.length === 0 ? '<div class="col-span-2 text-center text-gray-400 py-8">ยังไม่มีใบกิจกรรม</div>' :
-                state.activities.map(a => `
+                state.activities.map(a => {
+                    const sub = mySubs.find(s => String(s.activityId) === String(a.id) || s.activityTitle === a.title);
+                    const status = sub ? sub.status : 'ยังไม่ส่ง';
+                    
+                    let actionButtonHtml = '';
+                    if (status === 'ยังไม่ส่ง') {
+                        actionButtonHtml = `
+                            <button onclick="openSubmitModal('${a.id}', '${a.title}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-2 rounded-lg font-medium">
+                                <i class="fa-solid fa-paper-plane mr-1"></i>ส่งงาน
+                            </button>`;
+                    } else if (status === 'รอตรวจ') {
+                        actionButtonHtml = `
+                            <button onclick="openSubmitModal('${a.id}', '${a.title}', '${sub ? sub.fileUrl : ''}')" class="bg-amber-500 hover:bg-amber-600 text-white text-xs px-4 py-2 rounded-lg font-medium">
+                                <i class="fa-solid fa-pen-to-square mr-1"></i>แก้ไขงานที่ส่ง
+                            </button>`;
+                    } else if (status === 'ส่งคืนให้แก้ไข') {
+                        actionButtonHtml = `
+                            <button onclick="openSubmitModal('${a.id}', '${a.title}')" class="bg-orange-600 hover:bg-orange-700 text-white text-xs px-4 py-2 rounded-lg font-medium">
+                                <i class="fa-solid fa-rotate-right mr-1"></i>ส่งงานใหม่ (ครูส่งคืน)
+                            </button>`;
+                    } else if (status === 'ตรวจแล้ว') {
+                        actionButtonHtml = `
+                            <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
+                                <i class="fa-solid fa-check-circle mr-1"></i>ตรวจแล้ว (${sub.score} คะแนน)
+                            </span>`;
+                    }
+
+                    return `
                     <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-3">
                         <div class="flex justify-between items-start">
                             <span class="bg-blue-100 text-[#0f4c81] text-xs px-2.5 py-0.5 rounded-full font-medium">${a.unit || 'หน่วยเรียน'}</span>
@@ -506,46 +548,80 @@
                         </div>
                         <h4 class="font-heading font-bold text-gray-800 text-base">${a.title}</h4>
                         <p class="text-xs text-gray-600">${a.desc || ''}</p>
+                        ${sub && sub.feedback && status === 'ส่งคืนให้แก้ไข' ? `<div class="p-2 bg-orange-50 border border-orange-200 rounded text-xs text-orange-800"><strong>ข้อเสนอแนะจากครู:</strong> ${sub.feedback}</div>` : ''}
                         <div class="pt-2 border-t flex items-center justify-between gap-2">
                             <a href="${a.pdfUrl}" target="_blank" class="text-xs text-[#0f4c81] font-medium underline"><i class="fa-solid fa-download mr-1"></i>ดาวน์โหลดใบงาน</a>
-                            <button onclick="openSubmitModal('${a.id}', '${a.title}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-2 rounded-lg font-medium">
-                                <i class="fa-solid fa-paper-plane mr-1"></i>ส่งงาน
-                            </button>
+                            ${actionButtonHtml}
                         </div>
-                    </div>
-                `).join('');
+                    </div>`;
+                }).join('');
         }
 
         function renderStudentStatus() {
             const table = document.getElementById('studentStatusTable');
-            const mySubs = state.submissions.filter(s => String(s.studentId) === String(state.currentUser.id));
-            document.getElementById('studentProgressCount').innerText = `${mySubs.filter(s => s.status === 'ตรวจแล้ว').length} / ${state.activities.length}`;
-            table.innerHTML = mySubs.length === 0 ? `<tr><td colspan="6" class="p-4 text-center text-gray-400">ยังไม่มีประวัติการส่งงาน</td></tr>` :
-                mySubs.map(s => `
+            const studentId = String(state.currentUser.id);
+            const mySubs = state.submissions.filter(s => String(s.studentId) === studentId);
+            
+            const allActivitiesStatus = state.activities.map(act => {
+                const sub = mySubs.find(s => String(s.activityId) === String(act.id) || s.activityTitle === act.title);
+                if (sub) {
+                    return {
+                        submitDate: sub.submitDate,
+                        activityTitle: act.title,
+                        fileUrl: sub.fileUrl,
+                        status: sub.status || 'รอตรวจ',
+                        score: sub.score !== undefined && sub.score !== '' ? sub.score : '-',
+                        feedback: sub.feedback || '-'
+                    };
+                } else {
+                    return {
+                        submitDate: '-',
+                        activityTitle: act.title,
+                        fileUrl: null,
+                        status: 'ยังไม่ส่ง',
+                        score: '-',
+                        feedback: '-'
+                    };
+                }
+            });
+
+            const gradedCount = allActivitiesStatus.filter(s => s.status === 'ตรวจแล้ว').length;
+            document.getElementById('studentProgressCount').innerText = `${gradedCount} / ${state.activities.length}`;
+
+            table.innerHTML = allActivitiesStatus.length === 0 ? `<tr><td colspan="6" class="p-4 text-center text-gray-400">ยังไม่มีใบกิจกรรมในระบบ</td></tr>` :
+                allActivitiesStatus.map(s => `
                     <tr>
-                        <td class="p-3 text-xs text-gray-500">${new Date(s.submitDate).toLocaleString('th-TH')}</td>
+                        <td class="p-3 text-xs text-gray-500">${s.submitDate !== '-' ? new Date(s.submitDate).toLocaleString('th-TH') : '-'}</td>
                         <td class="p-3 font-medium text-gray-800">${s.activityTitle}</td>
-                        <td class="p-3"><a href="${s.fileUrl}" target="_blank" class="text-[#0f4c81] text-xs underline">เปิดดูแนบไฟล์</a></td>
-                        <td class="p-3 text-center"><span class="px-2 py-1 text-xs rounded-full ${s.status === 'ตรวจแล้ว' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${s.status}</span></td>
-                        <td class="p-3 text-center font-bold">${s.score !== undefined ? s.score : '-'}</td>
-                        <td class="p-3 text-xs text-gray-600">${s.feedback || '-'}</td>
+                        <td class="p-3">${s.fileUrl ? `<a href="${s.fileUrl}" target="_blank" class="text-[#0f4c81] text-xs underline">เปิดดูแนบไฟล์</a>` : '<span class="text-gray-400 text-xs">-</span>'}</td>
+                        <td class="p-3 text-center">${renderStatusBadge(s.status)}</td>
+                        <td class="p-3 text-center font-bold text-emerald-600">${s.score}</td>
+                        <td class="p-3 text-xs text-gray-600">${s.feedback}</td>
                     </tr>
                 `).join('');
         }
 
-        function openSubmitModal(actId, actTitle) {
+        function openSubmitModal(actId, actTitle, currentUrl = '') {
+            const existingSub = state.submissions.find(s => String(s.studentId) === String(state.currentUser.id) && (String(s.activityId) === String(actId) || s.activityTitle === actTitle));
+            
+            if (existingSub && existingSub.status === 'ตรวจแล้ว') {
+                return Swal.fire('ไม่สามารถแก้ไขได้', 'งานชิ้นนี้ได้รับการตรวจแล้ว หากต้องการส่งใหม่กรุณาแจ้งครูผู้สอนให้ส่งคืนงาน', 'warning');
+            }
+
             Swal.fire({
-                title: 'ส่งงานใบกิจกรรม',
+                title: existingSub && existingSub.status === 'รอตรวจ' ? 'แก้ไขงานที่ส่ง' : 'ส่งงานใบกิจกรรม',
                 text: actTitle,
                 input: 'url',
+                inputValue: currentUrl || (existingSub ? existingSub.fileUrl : ''),
                 inputLabel: 'วางลิงก์งาน (Google Drive / Canva / PDF)',
                 inputPlaceholder: 'https://...',
                 showCancelButton: true,
-                confirmButtonText: 'ส่งงาน'
+                confirmButtonText: 'บันทึกการส่งงาน'
             }).then((res) => {
                 if (res.isConfirmed && res.value) {
+                    const existingIndex = state.submissions.findIndex(s => String(s.studentId) === String(state.currentUser.id) && (String(s.activityId) === String(actId) || s.activityTitle === actTitle));
                     const newSub = {
-                        id: 'sub-' + Date.now(),
+                        id: existingIndex >= 0 ? state.submissions[existingIndex].id : 'sub-' + Date.now(),
                         submitDate: new Date().toISOString(),
                         studentId: state.currentUser.id,
                         studentName: state.currentUser.name,
@@ -557,11 +633,16 @@
                         score: '',
                         feedback: ''
                     };
-                    state.submissions.push(newSub);
+                    if (existingIndex >= 0) {
+                        state.submissions[existingIndex] = newSub;
+                    } else {
+                        state.submissions.push(newSub);
+                    }
                     localStorage.setItem('dt_submissions', JSON.stringify(state.submissions));
                     syncDataToCloud({ action: 'submitWork', ...newSub });
+                    renderStudentAssignments();
                     renderStudentStatus();
-                    Swal.fire('สำเร็จ', 'ส่งงานเรียบร้อยแล้ว', 'success');
+                    Swal.fire('สำเร็จ', 'บันทึกและส่งงานเรียบร้อยแล้ว', 'success');
                 }
             });
         }
@@ -572,7 +653,7 @@
                 const sel = document.getElementById(id);
                 if (!sel) return;
                 const currentVal = sel.value;
-                sel.innerHTML = '<option value="all">-- แสดงทุกห้องเรียน --</option>' + 
+                sel.innerHTML = '<option value="all">-- ทุกห้องเรียน --</option>' + 
                     rooms.map(r => `<option value="${r}">${r}</option>`).join('');
                 sel.value = currentVal;
             });
@@ -597,30 +678,71 @@
                 `).join('');
         }
 
+        function getFullSubmissionsList() {
+            let list = [];
+            let studentsList = state.students.length > 0 ? state.students : [];
+            
+            if (studentsList.length === 0 && state.submissions.length > 0) {
+                return state.submissions;
+            }
+
+            studentsList.forEach(st => {
+                if (state.activities.length === 0) {
+                    const stSubs = state.submissions.filter(sub => String(sub.studentId) === String(st.id));
+                    if (stSubs.length > 0) {
+                        list.push(...stSubs);
+                    }
+                } else {
+                    state.activities.forEach(act => {
+                        const sub = state.submissions.find(s => String(s.studentId) === String(st.id) && (String(s.activityId) === String(act.id) || s.activityTitle === act.title));
+                        if (sub) {
+                            list.push(sub);
+                        } else {
+                            list.push({
+                                id: `unsub-${st.id}-${act.id}`,
+                                submitDate: null,
+                                studentId: st.id,
+                                studentName: st.name,
+                                room: st.room,
+                                activityId: act.id,
+                                activityTitle: act.title,
+                                fileUrl: null,
+                                status: 'ยังไม่ส่ง',
+                                score: '-',
+                                feedback: '-'
+                            });
+                        }
+                    });
+                }
+            });
+            return list;
+        }
+
         function renderAdminSubmissions() {
             const table = document.getElementById('adminSubmissionsTable');
             const roomFilter = document.getElementById('adminFilterRoom').value;
             const statusFilter = document.getElementById('adminFilterStatus').value;
 
-            let filtered = state.submissions;
-            if (roomFilter !== 'all') filtered = filtered.filter(s => s.room === roomFilter);
-            if (statusFilter !== 'all') filtered = filtered.filter(s => s.status === statusFilter);
+            let allList = getFullSubmissionsList();
 
-            table.innerHTML = filtered.length === 0 ? `<tr><td colspan="8" class="p-4 text-center text-gray-400">ยังไม่มีข้อมูลการส่งงาน</td></tr>` :
-                filtered.map(s => `
-                    <tr>
-                        <td class="p-3 text-xs text-gray-500">${new Date(s.submitDate).toLocaleDateString('th-TH')}</td>
+            if (roomFilter !== 'all') allList = allList.filter(s => s.room === roomFilter);
+            if (statusFilter !== 'all') allList = allList.filter(s => s.status === statusFilter);
+
+            table.innerHTML = allList.length === 0 ? `<tr><td colspan="8" class="p-4 text-center text-gray-400">ไม่พบข้อมูลการส่งงานตามเงื่อนไขที่เลือก</td></tr>` :
+                allList.map(s => `
+                    <tr class="hover:bg-gray-50">
+                        <td class="p-3 text-xs text-gray-500">${s.submitDate ? new Date(s.submitDate).toLocaleDateString('th-TH') : '-'}</td>
                         <td class="p-3">
-                            <div class="font-bold text-gray-800">${getStudentName(s.studentId)}</div>
+                            <div class="font-bold text-gray-800">${s.studentName || getStudentName(s.studentId)}</div>
                             <div class="text-xs text-gray-400">รหัส: ${s.studentId}</div>
                         </td>
-                        <td class="p-3 text-xs">${s.room || '-'}</td>
+                        <td class="p-3 text-xs font-semibold">${s.room || '-'}</td>
                         <td class="p-3 text-xs font-medium">${s.activityTitle}</td>
-                        <td class="p-3"><a href="${s.fileUrl}" target="_blank" class="text-[#0f4c81] text-xs underline">เปิดดูงาน</a></td>
-                        <td class="p-3 text-center"><span class="px-2 py-0.5 text-xs rounded-full ${s.status === 'ตรวจแล้ว' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${s.status}</span></td>
-                        <td class="p-3 text-center font-bold text-emerald-600">${s.score !== undefined ? s.score : '-'}</td>
+                        <td class="p-3">${s.fileUrl ? `<a href="${s.fileUrl}" target="_blank" class="text-[#0f4c81] text-xs underline">เปิดดูงาน</a>` : '<span class="text-gray-400 text-xs">-</span>'}</td>
+                        <td class="p-3 text-center">${renderStatusBadge(s.status)}</td>
+                        <td class="p-3 text-center font-bold text-emerald-600">${s.score !== undefined && s.score !== '' ? s.score : '-'}</td>
                         <td class="p-3 text-center">
-                            <button onclick="gradeSubmissionModal('${s.id}')" class="bg-[#0f4c81] hover:bg-[#1b6ca8] text-white text-xs px-2 py-1 rounded">ตรวจงาน</button>
+                            ${s.status !== 'ยังไม่ส่ง' ? `<button onclick="gradeSubmissionModal('${s.id}')" class="bg-[#0f4c81] hover:bg-[#1b6ca8] text-white text-xs px-2.5 py-1 rounded shadow-sm">ตรวจงาน</button>` : `<span class="text-xs text-gray-400">-</span>`}
                         </td>
                     </tr>
                 `).join('');
@@ -635,21 +757,53 @@
                     <div class="text-left space-y-3 text-sm">
                         <p><strong>นักเรียน:</strong> ${getStudentName(sub.studentId)} (${sub.studentId})</p>
                         <p><strong>หัวข้อ:</strong> ${sub.activityTitle}</p>
-                        <div><label class="block text-xs font-medium">คะแนนที่ได้:</label><input id="swalScore" type="number" class="w-full border p-2 rounded mt-1" value="${sub.score || ''}"></div>
-                        <div><label class="block text-xs font-medium">ข้อเสนอแนะเพิ่มเติม:</label><textarea id="swalFeedback" class="w-full border p-2 rounded mt-1">${sub.feedback || ''}</textarea></div>
+                        <p><strong>งานที่ส่ง:</strong> <a href="${sub.fileUrl}" target="_blank" class="text-blue-600 underline">คลิกเปิดดูผลงาน</a></p>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700">การดำเนินการ:</label>
+                            <select id="swalStatusAction" class="w-full border p-2 rounded mt-1 bg-white" onchange="toggleScoreInput(this.value)">
+                                <option value="ตรวจแล้ว" ${sub.status === 'ตรวจแล้ว' ? 'selected' : ''}>ให้คะแนน (ตรวจแล้ว)</option>
+                                <option value="ส่งคืนให้แก้ไข" ${sub.status === 'ส่งคืนให้แก้ไข' ? 'selected' : ''}>ส่งคืนให้แก้ไข (นักเรียนส่งผิด/ต้องทำใหม่)</option>
+                            </select>
+                        </div>
+                        <div id="swalScoreContainer">
+                            <label class="block text-xs font-medium text-gray-700">คะแนนที่ได้:</label>
+                            <input id="swalScore" type="number" class="w-full border p-2 rounded mt-1" value="${sub.score || ''}">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700">ข้อเสนอแนะเพิ่มเติม / เหตุผลที่ส่งคืน:</label>
+                            <textarea id="swalFeedback" class="w-full border p-2 rounded mt-1" rows="3" placeholder="เช่น ไฟล์เปิดไม่ได้, ทำไม่ตรงคำสั่ง ฯลฯ">${sub.feedback || ''}</textarea>
+                        </div>
                     </div>
                 `,
                 showCancelButton: true,
-                confirmButtonText: 'บันทึกคะแนน'
+                confirmButtonText: 'บันทึกข้อมูล',
+                didOpen: () => {
+                    window.toggleScoreInput = function(val) {
+                        const scoreBox = document.getElementById('swalScoreContainer');
+                        if (val === 'ส่งคืนให้แก้ไข') {
+                            scoreBox.style.display = 'none';
+                        } else {
+                            scoreBox.style.display = 'block';
+                        }
+                    };
+                    toggleScoreInput(document.getElementById('swalStatusAction').value);
+                }
             }).then((res) => {
                 if (res.isConfirmed) {
-                    sub.score = document.getElementById('swalScore').value;
+                    const actionStatus = document.getElementById('swalStatusAction').value;
+                    sub.status = actionStatus;
                     sub.feedback = document.getElementById('swalFeedback').value;
-                    sub.status = 'ตรวจแล้ว';
+                    
+                    if (actionStatus === 'ส่งคืนให้แก้ไข') {
+                        sub.score = '';
+                    } else {
+                        sub.score = document.getElementById('swalScore').value;
+                    }
+
                     localStorage.setItem('dt_submissions', JSON.stringify(state.submissions));
                     syncDataToCloud({ action: 'gradeWork', ...sub });
                     renderAdminSubmissions();
-                    Swal.fire('สำเร็จ', 'บันทึกคะแนนเรียบร้อย', 'success');
+                    Swal.fire('สำเร็จ', actionStatus === 'ส่งคืนให้แก้ไข' ? 'ส่งคืนงานให้นักเรียนเรียบร้อยแล้ว' : 'บันทึกคะแนนเรียบร้อยแล้ว', 'success');
                 }
             });
         }
@@ -808,21 +962,22 @@
         }
 
         function exportToExcel() {
-            const data = state.submissions.map(s => ({
-                'วันเวลาที่ส่ง': new Date(s.submitDate).toLocaleString('th-TH'),
+            const allList = getFullSubmissionsList();
+            const data = allList.map(s => ({
+                'วันเวลาที่ส่ง': s.submitDate ? new Date(s.submitDate).toLocaleString('th-TH') : '-',
                 'รหัสนักเรียน': s.studentId,
-                'ชื่อ-นามสกุล': getStudentName(s.studentId),
+                'ชื่อ-นามสกุล': s.studentName || getStudentName(s.studentId),
                 'ห้องเรียน': s.room || '-',
                 'ใบกิจกรรม': s.activityTitle,
-                'ลิงก์งาน': s.fileUrl,
+                'ลิงก์งาน': s.fileUrl || '-',
                 'สถานะ': s.status,
-                'คะแนน': s.score || 0,
+                'คะแนน': s.score !== undefined && s.score !== '' ? s.score : 0,
                 'ข้อเสนอแนะ': s.feedback || '-'
             }));
             const ws = XLSX.utils.json_to_sheet(data);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "คะแนนนักเรียน");
-            XLSX.writeFile(wb, "ผลการเรียน_ว23104.xlsx");
+            XLSX.writeFile(wb, "รายงานผลการส่งงาน_ว23104.xlsx");
         }
 
         function switchStudentTab(tab) {
