@@ -17,19 +17,16 @@
     <style>
         body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; }
         h1, h2, h3, h4, h5, h6, .font-heading { font-family: 'Kanit', sans-serif; }
-        .bg-custom-primary { background-color: #0f4c81; }
-        .bg-custom-secondary { background-color: #1b6ca8; }
-        .text-custom-primary { color: #0f4c81; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
     <!-- Navigation Bar -->
-    <nav class="bg-custom-primary text-white shadow-md sticky top-0 z-50">
+    <nav class="bg-[#0f4c81] text-white shadow-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center space-x-3">
-                    <div class="bg-white p-2 rounded-lg text-custom-primary">
+                    <div class="bg-white p-2 rounded-lg text-[#0f4c81]">
                         <i class="fa-solid fa-microchip text-xl"></i>
                     </div>
                     <div>
@@ -47,7 +44,7 @@
 
         <!-- Login View -->
         <div id="viewLogin" class="max-w-md mx-auto my-12 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-            <div class="bg-custom-primary p-6 text-center text-white">
+            <div class="bg-[#0f4c81] p-6 text-center text-white">
                 <div class="inline-flex p-4 rounded-full bg-white/10 mb-3">
                     <i class="fa-solid fa-user-graduate text-4xl"></i>
                 </div>
@@ -69,7 +66,7 @@
                         <input type="password" id="loginPassword" required class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="กรอกรหัสผ่าน">
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-custom-primary hover:bg-custom-secondary text-white font-medium py-2.5 rounded-lg shadow-md transition flex items-center justify-center space-x-2">
+                <button type="submit" class="w-full bg-[#0f4c81] hover:bg-[#1b6ca8] text-white font-medium py-2.5 rounded-lg shadow-md transition flex items-center justify-center space-x-2">
                     <span>เข้าสู่ระบบ</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
@@ -78,10 +75,11 @@
 
         <!-- Student Portal View -->
         <div id="viewStudent" class="hidden space-y-6">
-            <div class="bg-gradient-to-r from-custom-primary to-custom-secondary text-white p-6 rounded-2xl shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <!-- Fixed Dark Gradient Background Header -->
+            <div class="bg-gradient-to-r from-[#0f4c81] to-[#1b6ca8] text-white p-6 rounded-2xl shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <span class="inline-block bg-white/20 text-xs px-3 py-1 rounded-full mb-2">พื้นที่เรียนรู้นักเรียน</span>
-                    <h2 class="font-heading text-2xl font-bold" id="studentWelcomeName">สวัสดี, นักเรียน</h2>
+                    <h2 class="font-heading text-2xl font-bold text-white" id="studentWelcomeName">สวัสดี, นักเรียน</h2>
                     <p class="text-sm text-blue-100">เข้าถึงใบความรู้ ส่งงาน และติดตามสถานะคะแนน</p>
                 </div>
                 <div class="bg-white/10 p-4 rounded-xl border border-white/20 text-center min-w-[160px]">
@@ -92,30 +90,30 @@
 
             <!-- Tabs -->
             <div class="border-b border-gray-200 flex space-x-4">
-                <button onclick="switchStudentTab('materials')" id="tabBtnMaterials" class="py-3 px-4 font-medium border-b-2 border-custom-primary text-custom-primary flex items-center space-x-2">
+                <button onclick="switchStudentTab('materials')" id="tabBtnMaterials" class="py-3 px-4 font-medium border-b-2 border-[#0f4c81] text-[#0f4c81] flex items-center space-x-2">
                     <i class="fa-solid fa-book-open"></i><span>1. ใบความรู้</span>
                 </button>
-                <button onclick="switchStudentTab('assignments')" id="tabBtnAssignments" class="py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-custom-primary flex items-center space-x-2">
+                <button onclick="switchStudentTab('assignments')" id="tabBtnAssignments" class="py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-[#0f4c81] flex items-center space-x-2">
                     <i class="fa-solid fa-pen-to-square"></i><span>2. ใบกิจกรรม / ส่งงาน</span>
                 </button>
-                <button onclick="switchStudentTab('status')" id="tabBtnStatus" class="py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-custom-primary flex items-center space-x-2">
+                <button onclick="switchStudentTab('status')" id="tabBtnStatus" class="py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-[#0f4c81] flex items-center space-x-2">
                     <i class="fa-solid fa-chart-line"></i><span>3. ตรวจสอบสถานะส่งงาน</span>
                 </button>
             </div>
 
             <!-- Content Sections -->
             <div id="studentTabMaterials" class="space-y-4">
-                <h3 class="font-heading text-xl font-bold text-gray-800"><i class="fa-solid fa-folder-open text-custom-primary mr-2"></i>คลังใบความรู้เอกสารประกอบการเรียน</h3>
+                <h3 class="font-heading text-xl font-bold text-gray-800"><i class="fa-solid fa-folder-open text-[#0f4c81] mr-2"></i>คลังใบความรู้เอกสารประกอบการเรียน</h3>
                 <div id="studentMaterialsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
 
             <div id="studentTabAssignments" class="hidden space-y-4">
-                <h3 class="font-heading text-xl font-bold text-gray-800"><i class="fa-solid fa-tasks text-custom-primary mr-2"></i>รายการใบกิจกรรมประจำหน่วย</h3>
+                <h3 class="font-heading text-xl font-bold text-gray-800"><i class="fa-solid fa-tasks text-[#0f4c81] mr-2"></i>รายการใบกิจกรรมประจำหน่วย</h3>
                 <div id="studentAssignmentsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
             </div>
 
             <div id="studentTabStatus" class="hidden space-y-4">
-                <h3 class="font-heading text-xl font-bold text-gray-800"><i class="fa-solid fa-clipboard-check text-custom-primary mr-2"></i>ประวัติและผลการตรวจงาน</h3>
+                <h3 class="font-heading text-xl font-bold text-gray-800"><i class="fa-solid fa-clipboard-check text-[#0f4c81] mr-2"></i>ประวัติและผลการตรวจงาน</h3>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <table class="w-full text-left text-sm">
                         <thead class="bg-gray-50 text-gray-700 font-heading border-b">
@@ -139,23 +137,23 @@
             <div class="bg-slate-800 text-white p-6 rounded-2xl shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <span class="inline-block bg-blue-500/30 text-blue-300 text-xs px-3 py-1 rounded-full mb-2">ระบบผู้ดูแลระบบ (Admin)</span>
-                    <h2 class="font-heading text-2xl font-bold">แผงควบคุมการจัดการเรียนการสอน</h2>
+                    <h2 class="font-heading text-2xl font-bold text-white">แผงควบคุมการจัดการเรียนการสอน</h2>
                     <p class="text-sm text-slate-300">จัดการรายชื่อนักเรียน สื่อการเรียนรู้ ใบกิจกรรม และตรวจงาน</p>
                 </div>
             </div>
 
             <!-- Admin Tabs -->
             <div class="border-b border-gray-200 flex space-x-4 overflow-x-auto">
-                <button onclick="switchAdminTab('grading')" id="adminTabBtnGrading" class="py-3 px-4 font-medium border-b-2 border-custom-primary text-custom-primary whitespace-nowrap">
+                <button onclick="switchAdminTab('grading')" id="adminTabBtnGrading" class="py-3 px-4 font-medium border-b-2 border-[#0f4c81] text-[#0f4c81] whitespace-nowrap">
                     <i class="fa-solid fa-check-double mr-2"></i>1. ตรวจงานนักเรียน
                 </button>
-                <button onclick="switchAdminTab('students')" id="adminTabBtnStudents" class="py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-custom-primary whitespace-nowrap">
+                <button onclick="switchAdminTab('students')" id="adminTabBtnStudents" class="py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-[#0f4c81] whitespace-nowrap">
                     <i class="fa-solid fa-users mr-2"></i>2. รายชื่อนักเรียน (<span id="adminTotalStudentCount">0</span> คน)
                 </button>
-                <button onclick="switchAdminTab('materials')" id="adminTabBtnMaterials" class="py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-custom-primary whitespace-nowrap">
+                <button onclick="switchAdminTab('materials')" id="adminTabBtnMaterials" class="py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-[#0f4c81] whitespace-nowrap">
                     <i class="fa-solid fa-file-powerpoint mr-2"></i>3. จัดการใบความรู้/กิจกรรม
                 </button>
-                <button onclick="switchAdminTab('settings')" id="adminTabBtnSettings" class="py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-custom-primary whitespace-nowrap">
+                <button onclick="switchAdminTab('settings')" id="adminTabBtnSettings" class="py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-[#0f4c81] whitespace-nowrap">
                     <i class="fa-solid fa-cloud-arrow-up mr-2"></i>4. ตั้งค่า Google Sheets
                 </button>
             </div>
@@ -234,7 +232,7 @@
             <div id="adminTabMaterials" class="hidden space-y-6">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 space-y-4">
-                        <h4 class="font-heading font-bold text-lg text-custom-primary"><i class="fa-solid fa-plus-circle mr-2"></i>เพิ่มใบความรู้ใหม่</h4>
+                        <h4 class="font-heading font-bold text-lg text-[#0f4c81]"><i class="fa-solid fa-plus-circle mr-2"></i>เพิ่มใบความรู้ใหม่</h4>
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">ชื่อใบความรู้</label>
                             <input type="text" id="addMatTitle" class="w-full border rounded-lg p-2 text-sm" placeholder="เช่น ใบความรู้ที่ 1.1">
@@ -261,7 +259,7 @@
                             <label class="block text-xs font-medium text-gray-600 mb-1">คำอธิบาย</label>
                             <textarea id="addMatDesc" rows="2" class="w-full border rounded-lg p-2 text-sm"></textarea>
                         </div>
-                        <button onclick="addMaterial()" class="w-full bg-custom-primary hover:bg-custom-secondary text-white py-2 rounded-lg text-sm">
+                        <button onclick="addMaterial()" class="w-full bg-[#0f4c81] hover:bg-[#1b6ca8] text-white py-2 rounded-lg text-sm">
                             บันทึกใบความรู้ & ซิงค์ขึ้น Cloud
                         </button>
                     </div>
@@ -314,12 +312,12 @@
             <!-- Admin Settings -->
             <div id="adminTabSettings" class="hidden space-y-4">
                 <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 max-w-2xl space-y-4">
-                    <h4 class="font-heading font-bold text-lg text-gray-800"><i class="fa-solid fa-link text-custom-primary mr-2"></i>เชื่อมต่อ Google Apps Script Web App</h4>
+                    <h4 class="font-heading font-bold text-lg text-gray-800"><i class="fa-solid fa-link text-[#0f4c81] mr-2"></i>เชื่อมต่อ Google Apps Script Web App</h4>
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1">Web App URL</label>
                         <input type="url" id="settingScriptUrl" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm" placeholder="https://script.google.com/macros/s/.../exec">
                     </div>
-                    <button onclick="saveScriptUrlSetting()" class="bg-custom-primary hover:bg-custom-secondary text-white px-5 py-2 rounded-lg text-sm font-medium">
+                    <button onclick="saveScriptUrlSetting()" class="bg-[#0f4c81] hover:bg-[#1b6ca8] text-white px-5 py-2 rounded-lg text-sm font-medium">
                         บันทึกการตั้งค่า
                     </button>
                 </div>
@@ -336,10 +334,7 @@
 
     <!-- JavaScript Application Core -->
     <script>
-        // ==========================================================
-        // CONFIGURATION & GLOBAL STATE
-        // ==========================================================
-        const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw2izGp4_WPtSZ9MhVd_RroghJbTyNT5enXPmnu8Pe2fdFW9pSJEixRewx9JRz89p1m/exec'; // <-- วาง Web App URL ตรงนี้
+        const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw2izGp4_WPtSZ9MhVd_RroghJbTyNT5enXPmnu8Pe2fdFW9pSJEixRewx9JRz89p1m/exec';
 
         let state = {
             currentUser: null,
@@ -404,7 +399,6 @@
                 renderAppView();
                 Swal.fire({ icon: 'success', title: `ยินดีต้อนรับ ${student.name}`, timer: 1200, showConfirmButton: false });
             } else {
-                // Fallback for new student registration
                 Swal.fire({
                     title: 'ลงทะเบียนเข้าใช้งาน',
                     html: `
@@ -454,7 +448,7 @@
 
             navAuth.innerHTML = `
                 <div class="text-right hidden sm:block">
-                    <div class="text-xs font-semibold">${state.currentUser.name}</div>
+                    <div class="text-xs font-semibold text-white">${state.currentUser.name}</div>
                     <div class="text-[10px] text-blue-200">${state.currentUser.role === 'admin' ? 'สิทธิ์ผู้ดูแลระบบ (Admin)' : state.currentUser.room}</div>
                 </div>
                 <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center space-x-1">
@@ -483,7 +477,6 @@
             document.getElementById(`view${cap}`).classList.remove('hidden');
         }
 
-        // Student Views
         function renderStudentMaterials() {
             const grid = document.getElementById('studentMaterialsGrid');
             grid.innerHTML = state.knowledge.length === 0 ? '<div class="col-span-3 text-center text-gray-400 py-8">ยังไม่มีเอกสารใบความรู้</div>' :
@@ -495,7 +488,7 @@
                         </div>
                         <h4 class="font-heading font-bold text-gray-800 text-base">${k.title}</h4>
                         <p class="text-xs text-gray-500">${k.desc || ''}</p>
-                        <a href="${k.url}" target="_blank" class="block w-full text-center bg-custom-primary text-white text-xs py-2 rounded-lg">
+                        <a href="${k.url}" target="_blank" class="block w-full text-center bg-[#0f4c81] hover:bg-[#1b6ca8] text-white text-xs py-2 rounded-lg">
                             <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>เปิดอ่านใบความรู้
                         </a>
                     </div>
@@ -508,13 +501,13 @@
                 state.activities.map(a => `
                     <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-3">
                         <div class="flex justify-between items-start">
-                            <span class="bg-blue-100 text-custom-primary text-xs px-2.5 py-0.5 rounded-full font-medium">${a.unit || 'หน่วยเรียน'}</span>
+                            <span class="bg-blue-100 text-[#0f4c81] text-xs px-2.5 py-0.5 rounded-full font-medium">${a.unit || 'หน่วยเรียน'}</span>
                             <span class="text-xs text-red-500 font-medium"><i class="fa-solid fa-clock mr-1"></i>กำหนดส่ง: ${a.dueDate || 'ไม่ระบุ'}</span>
                         </div>
                         <h4 class="font-heading font-bold text-gray-800 text-base">${a.title}</h4>
                         <p class="text-xs text-gray-600">${a.desc || ''}</p>
                         <div class="pt-2 border-t flex items-center justify-between gap-2">
-                            <a href="${a.pdfUrl}" target="_blank" class="text-xs text-custom-primary font-medium underline"><i class="fa-solid fa-download mr-1"></i>ดาวน์โหลดใบงาน</a>
+                            <a href="${a.pdfUrl}" target="_blank" class="text-xs text-[#0f4c81] font-medium underline"><i class="fa-solid fa-download mr-1"></i>ดาวน์โหลดใบงาน</a>
                             <button onclick="openSubmitModal('${a.id}', '${a.title}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-2 rounded-lg font-medium">
                                 <i class="fa-solid fa-paper-plane mr-1"></i>ส่งงาน
                             </button>
@@ -532,7 +525,7 @@
                     <tr>
                         <td class="p-3 text-xs text-gray-500">${new Date(s.submitDate).toLocaleString('th-TH')}</td>
                         <td class="p-3 font-medium text-gray-800">${s.activityTitle}</td>
-                        <td class="p-3"><a href="${s.fileUrl}" target="_blank" class="text-custom-primary text-xs underline">เปิดดูแนบไฟล์</a></td>
+                        <td class="p-3"><a href="${s.fileUrl}" target="_blank" class="text-[#0f4c81] text-xs underline">เปิดดูแนบไฟล์</a></td>
                         <td class="p-3 text-center"><span class="px-2 py-1 text-xs rounded-full ${s.status === 'ตรวจแล้ว' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${s.status}</span></td>
                         <td class="p-3 text-center font-bold">${s.score !== undefined ? s.score : '-'}</td>
                         <td class="p-3 text-xs text-gray-600">${s.feedback || '-'}</td>
@@ -573,7 +566,6 @@
             });
         }
 
-        // Admin Views
         function populateRoomDropdowns() {
             const rooms = [...new Set(state.students.map(s => s.room))].filter(Boolean).sort();
             ['adminStudentRoomSelect', 'adminFilterRoom'].forEach(id => {
@@ -597,7 +589,7 @@
             table.innerHTML = filtered.length === 0 ? `<tr><td colspan="4" class="p-4 text-center text-gray-400">ไม่พบรายชื่อนักเรียนในระบบ</td></tr>` :
                 filtered.map(s => `
                     <tr class="hover:bg-gray-50">
-                        <td class="p-3 font-mono font-bold text-custom-primary">${s.id}</td>
+                        <td class="p-3 font-mono font-bold text-[#0f4c81]">${s.id}</td>
                         <td class="p-3 font-medium text-gray-800">${s.name}</td>
                         <td class="p-3 text-xs text-gray-500">${s.room}</td>
                         <td class="p-3 text-xs text-gray-500">${s.number || '-'}</td>
@@ -624,11 +616,11 @@
                         </td>
                         <td class="p-3 text-xs">${s.room || '-'}</td>
                         <td class="p-3 text-xs font-medium">${s.activityTitle}</td>
-                        <td class="p-3"><a href="${s.fileUrl}" target="_blank" class="text-custom-primary text-xs underline">เปิดดูงาน</a></td>
+                        <td class="p-3"><a href="${s.fileUrl}" target="_blank" class="text-[#0f4c81] text-xs underline">เปิดดูงาน</a></td>
                         <td class="p-3 text-center"><span class="px-2 py-0.5 text-xs rounded-full ${s.status === 'ตรวจแล้ว' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${s.status}</span></td>
                         <td class="p-3 text-center font-bold text-emerald-600">${s.score !== undefined ? s.score : '-'}</td>
                         <td class="p-3 text-center">
-                            <button onclick="gradeSubmissionModal('${s.id}')" class="bg-custom-primary text-white text-xs px-2 py-1 rounded">ตรวจงาน</button>
+                            <button onclick="gradeSubmissionModal('${s.id}')" class="bg-[#0f4c81] hover:bg-[#1b6ca8] text-white text-xs px-2 py-1 rounded">ตรวจงาน</button>
                         </td>
                     </tr>
                 `).join('');
@@ -762,7 +754,6 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // Cloud Synchronization Functions
         function saveScriptUrlSetting() {
             const url = document.getElementById('settingScriptUrl').value.trim();
             state.scriptUrl = url;
@@ -834,25 +825,24 @@
             XLSX.writeFile(wb, "ผลการเรียน_ว23104.xlsx");
         }
 
-        // Tab Switches
         function switchStudentTab(tab) {
             ['Materials', 'Assignments', 'Status'].forEach(t => {
                 document.getElementById(`studentTab${t}`).classList.add('hidden');
-                document.getElementById(`tabBtn${t}`).className = 'py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-custom-primary flex items-center space-x-2';
+                document.getElementById(`tabBtn${t}`).className = 'py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-[#0f4c81] flex items-center space-x-2';
             });
             const cap = tab.charAt(0).toUpperCase() + tab.slice(1);
             document.getElementById(`studentTab${cap}`).classList.remove('hidden');
-            document.getElementById(`tabBtn${cap}`).className = 'py-3 px-4 font-medium border-b-2 border-custom-primary text-custom-primary flex items-center space-x-2';
+            document.getElementById(`tabBtn${cap}`).className = 'py-3 px-4 font-medium border-b-2 border-[#0f4c81] text-[#0f4c81] flex items-center space-x-2';
         }
 
         function switchAdminTab(tab) {
             ['Grading', 'Students', 'Materials', 'Settings'].forEach(t => {
                 document.getElementById(`adminTab${t}`).classList.add('hidden');
-                document.getElementById(`adminTabBtn${t}`).className = 'py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-custom-primary whitespace-nowrap';
+                document.getElementById(`adminTabBtn${t}`).className = 'py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-[#0f4c81] whitespace-nowrap';
             });
             const cap = tab.charAt(0).toUpperCase() + tab.slice(1);
             document.getElementById(`adminTab${cap}`).classList.remove('hidden');
-            document.getElementById(`adminTabBtn${cap}`).className = 'py-3 px-4 font-medium border-b-2 border-custom-primary text-custom-primary whitespace-nowrap';
+            document.getElementById(`adminTabBtn${cap}`).className = 'py-3 px-4 font-medium border-b-2 border-[#0f4c81] text-[#0f4c81] whitespace-nowrap';
         }
     </script>
 </body>
