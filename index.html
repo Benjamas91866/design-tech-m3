@@ -109,7 +109,7 @@
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
                             <i class="fa-solid fa-id-card"></i>
                         </span>
-                        <input type="text" id="loginUsername" required placeholder="กรอกรหัสนักเรียน (เช่น 30101)" class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ipst-blue focus:outline-none text-gray-800">
+                        <input type="text" id="loginUsername" required placeholder="กรอกรหัสนักเรียน (เช่น 31337)" class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ipst-blue focus:outline-none text-gray-800">
                     </div>
                 </div>
 
@@ -450,7 +450,7 @@
 
                     <!-- Add single student form -->
                     <form onsubmit="handleAddSingleStudent(event)" class="grid grid-cols-1 sm:grid-cols-5 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
-                        <input type="text" id="addStdId" required placeholder="รหัสนักเรียน (30xxx)" class="text-sm p-2 border border-gray-300 rounded-lg">
+                        <input type="text" id="addStdId" required placeholder="รหัสนักเรียน (31xxx)" class="text-sm p-2 border border-gray-300 rounded-lg">
                         <input type="text" id="addStdName" required placeholder="ชื่อ-นามสกุล" class="text-sm p-2 border border-gray-300 rounded-lg col-span-2">
                         <select id="addStdRoom" class="text-sm p-2 border border-gray-300 rounded-lg">
                             <option value="3/1">ม.3/1</option>
@@ -516,7 +516,6 @@ function doPost(e) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   var data = JSON.parse(e.postData.contents);
   
-  // เพิ่มแถวข้อมูลการส่งงาน
   sheet.appendRow([
     new Date(),
     data.studentId,
@@ -617,16 +616,39 @@ function doPost(e) {
         <p class="mt-1">พัฒนาเพื่อการศึกษา ปีการศึกษา 2569 | โรงเรียนแม่จันวิทยาคม</p>
     </footer>
 
-    <!-- JavaScript Logic -->
+    <!-- JavaScript Logic & Built-in Student Data (407 Students) -->
     <script>
-        // --- INITIAL MOCK DATA ---
-        const initialStudents = [
-            { id: '30101', name: 'นายกิตติศักดิ์ สุขใจ', room: '3/1', number: 1 },
-            { id: '30102', name: 'นางสาวจินตนา ดีเยี่ยม', room: '3/1', number: 2 },
-            { id: '30103', name: 'นายชินวัตร ปัญญาดี', room: '3/1', number: 3 },
-            { id: '30201', name: 'นายณัฐพงษ์ รักเรียน', room: '3/2', number: 1 },
-            { id: '30202', name: 'นางสาวธิดารัตน์ งามยิ่ง', room: '3/2', number: 2 }
-        ];
+        // --- GENERATE ALL 407 STUDENTS FOR M.3/1 TO M.3/11 ---
+        function generateAllStudents() {
+            const ranges = [
+                { room: '3/1', start: 31337, count: 36 },
+                { room: '3/2', start: 31373, count: 38 },
+                { room: '3/3', start: 31411, count: 38 },
+                { room: '3/4', start: 31449, count: 40 },
+                { room: '3/5', start: 31489, count: 40 },
+                { room: '3/6', start: 31529, count: 39 },
+                { room: '3/7', start: 31568, count: 38 },
+                { room: '3/8', start: 31606, count: 37 },
+                { room: '3/9', start: 31643, count: 34 },
+                { room: '3/10', start: 31677, count: 33 },
+                { room: '3/11', start: 31710, count: 34 }
+            ];
+
+            let list = [];
+            ranges.forEach(r => {
+                for (let i = 0; i < r.count; i++) {
+                    const stdId = String(r.start + i);
+                    const stdNum = i + 1;
+                    list.push({
+                        id: stdId,
+                        name: `นักเรียน ม.${r.room} (เลขที่ ${stdNum})`,
+                        room: r.room,
+                        number: stdNum
+                    });
+                }
+            });
+            return list;
+        }
 
         const initialKnowledge = [
             { id: 1, title: 'ใบความรู้ที่ 1.1 เทคโนโลยีและการเปลี่ยนแปลง', unit: 'หน่วยที่ 1', type: 'pdf', url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', desc: 'ศึกษาความหมาย ความสำคัญ และสาเหตุการเปลี่ยนแปลงของเทคโนโลยี' },
@@ -639,24 +661,22 @@ function doPost(e) {
             { id: 102, title: 'ใบกิจกรรมที่ 2.1 ระบุปัญหาและกำหนดกรอบของปัญหา', unit: 'หน่วยที่ 2', maxScore: 10, dueDate: '2026-07-01', pdfUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', desc: 'ใช้เทคนิค 5W1H ในการระบุปัญหาในโรงเรียนหรือชุมชน' }
         ];
 
-        const initialSubmissions = [
-            { id: 'sub-1', activityId: 101, studentId: '30101', studentName: 'นายกิตติศักดิ์ สุขใจ', room: '3/1', fileUrl: 'https://drive.google.com/file/d/sample1', submitDate: '2026-06-10 10:30', status: 'checked', score: 9, feedback: 'วิเคราะห์ได้ละเอียด ชัดเจนมากครับ' }
-        ];
+        const initialSubmissions = [];
 
         // --- APP STATE ---
         let appState = {
-            currentUser: null, // { role: 'student'|'admin', data: {...} }
+            currentUser: null,
             loginTab: 'student',
-            students: JSON.parse(localStorage.getItem('dt_students')) || initialStudents,
+            students: JSON.parse(localStorage.getItem('dt_students_v2')) || generateAllStudents(),
             knowledge: JSON.parse(localStorage.getItem('dt_knowledge')) || initialKnowledge,
             activities: JSON.parse(localStorage.getItem('dt_activities')) || initialActivities,
             submissions: JSON.parse(localStorage.getItem('dt_submissions')) || initialSubmissions,
             scriptUrl: localStorage.getItem('dt_script_url') || ''
         };
 
-        // --- SAVE APP STATE TO LOCALSTORAGE ---
+        // --- SAVE DATA TO LOCALSTORAGE ---
         function saveData() {
-            localStorage.setItem('dt_students', JSON.stringify(appState.students));
+            localStorage.setItem('dt_students_v2', JSON.stringify(appState.students));
             localStorage.setItem('dt_knowledge', JSON.stringify(appState.knowledge));
             localStorage.setItem('dt_activities', JSON.stringify(appState.activities));
             localStorage.setItem('dt_submissions', JSON.stringify(appState.submissions));
@@ -676,7 +696,7 @@ function doPost(e) {
                 admBtn.className = "flex-1 py-2 rounded-md text-center text-gray-500 hover:text-ipst-blue transition";
                 usernameLabel.innerText = "รหัสนักเรียน";
                 passwordLabel.innerText = "รหัสผ่าน (ใช้รหัสนักเรียน)";
-                usernameInput.placeholder = "กรอกรหัสนักเรียน (เช่น 30101)";
+                usernameInput.placeholder = "กรอกรหัสนักเรียน (เช่น 31337)";
             } else {
                 admBtn.className = "flex-1 py-2 rounded-md text-center bg-white shadow text-ipst-blue font-semibold transition";
                 stdBtn.className = "flex-1 py-2 rounded-md text-center text-gray-500 hover:text-ipst-blue transition";
@@ -911,7 +931,6 @@ function doPost(e) {
             document.getElementById('modalFileUrl').value = '';
             document.getElementById('modalStudentNote').value = '';
 
-            // Check if already submitted
             const student = appState.currentUser.data;
             const sub = appState.submissions.find(s => s.activityId === act.id && s.studentId === student.id);
             if (sub) {
@@ -937,7 +956,6 @@ function doPost(e) {
             const now = new Date();
             const formattedDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
-            // Remove existing submission if any
             appState.submissions = appState.submissions.filter(s => !(s.activityId === actId && s.studentId === student.id));
 
             const newSub = {
@@ -958,7 +976,6 @@ function doPost(e) {
             appState.submissions.push(newSub);
             saveData();
 
-            // Send Webhook to Google Sheets if configured
             if (appState.scriptUrl) {
                 fetch(appState.scriptUrl, {
                     method: 'POST',
@@ -1018,7 +1035,6 @@ function doPost(e) {
             const roomFilter = document.getElementById('adminGradingRoomFilter').value;
             const statusFilter = document.getElementById('adminGradingStatusFilter').value;
 
-            // Generate full grid of students and activities
             let rows = [];
 
             appState.students.forEach(std => {
@@ -1031,7 +1047,7 @@ function doPost(e) {
                     
                     let subStatus = 'unsubmitted';
                     if (sub) {
-                        subStatus = sub.status; // 'pending' or 'checked'
+                        subStatus = sub.status;
                     }
 
                     if (statusFilter !== 'all' && subStatus !== statusFilter) return;
@@ -1331,9 +1347,9 @@ function doPost(e) {
 
         function downloadSampleExcel() {
             const sampleData = [
-                { id: "30101", name: "นายสมชาย ใจดี", room: "3/1", number: 1 },
-                { id: "30102", name: "นางสาวสมหญิง รักเรียน", room: "3/1", number: 2 },
-                { id: "30201", name: "นายรักชาติ ยิ่งชีพ", room: "3/2", number: 1 }
+                { id: "31337", name: "นายสมชาย ใจดี", room: "3/1", number: 1 },
+                { id: "31338", name: "นางสาวสมหญิง รักเรียน", room: "3/1", number: 2 },
+                { id: "31373", name: "นายรักชาติ ยิ่งชีพ", room: "3/2", number: 1 }
             ];
             const worksheet = XLSX.utils.json_to_sheet(sampleData);
             const workbook = XLSX.utils.book_new();
