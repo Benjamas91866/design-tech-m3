@@ -10,717 +10,334 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts (Sarabun & Kanit) -->
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- SheetJS for Excel Reading/Writing -->
+    <!-- SheetJS for Excel Operations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- SweetAlert2 for Modern Alerts -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        ipst: {
-                            blue: '#0B5993',
-                            blueDark: '#084370',
-                            blueLight: '#1B73B8',
-                            green: '#55B551',
-                            greenDark: '#41993D',
-                            greenLight: '#EAF7EA',
-                            bg: '#F4F7FA'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Sarabun', 'sans-serif'],
-                        heading: ['Kanit', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
     <style>
-        body { font-family: 'Sarabun', sans-serif; background-color: #F4F7FA; }
-        h1, h2, h3, h4, .font-heading { font-family: 'Kanit', sans-serif; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        h1, h2, h3, h4, h5, h6, .font-heading { font-family: 'Kanit', sans-serif; }
+        .bg-custom-primary { background-color: #0f4c81; }
+        .bg-custom-secondary { background-color: #1b6ca8; }
+        .bg-custom-accent { background-color: #28a745; }
+        .text-custom-primary { color: #0f4c81; }
+        .text-custom-secondary { color: #1b6ca8; }
+        .border-custom-primary { border-color: #0f4c81; }
     </style>
 </head>
-<body class="text-gray-800 antialiased min-h-screen flex flex-col justify-between">
+<body class="min-h-screen flex flex-col">
 
-    <!-- App Header Nav -->
-    <header id="mainNav" class="bg-ipst-blue text-white shadow-md sticky top-0 z-40">
+    <!-- Navigation Bar -->
+    <nav class="bg-custom-primary text-white shadow-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
-                <!-- Logo & Course Info -->
                 <div class="flex items-center space-x-3">
-                    <div class="bg-white p-2 rounded-lg text-ipst-blue font-bold flex items-center justify-center shadow">
-                        <i class="fa-solid fa-microchip text-xl text-ipst-green"></i>
+                    <div class="bg-white p-2 rounded-lg text-custom-primary">
+                        <i class="fa-solid fa-microchip text-xl"></i>
                     </div>
                     <div>
-                        <h1 class="text-lg font-bold leading-tight font-heading">การออกแบบและเทคโนโลยี</h1>
-                        <p class="text-xs text-blue-100 hidden sm:block">ว23104 ชั้นมัธยมศึกษาปีที่ 3 | ปีการศึกษา 2569</p>
+                        <span class="font-heading text-lg font-bold block leading-tight">การออกแบบและเทคโนโลยี</span>
+                        <span class="text-xs text-blue-200">ว23104 ชั้นมัธยมศึกษาปีที่ 3 | ปีการศึกษา 2569</span>
                     </div>
                 </div>
-
-                <!-- Cloud Sync Status Indicator -->
-                <div class="flex items-center space-x-3">
-                    <div id="cloudSyncIndicator" class="flex items-center text-xs bg-white/10 px-3 py-1 rounded-full border border-white/20 text-blue-100">
-                        <i id="cloudSyncIcon" class="fa-solid fa-cloud-check mr-1.5 text-green-400"></i>
-                        <span id="cloudSyncText">ระบบซิงค์ Google Sheets</span>
-                    </div>
-
-                    <!-- User Profile / Logout -->
-                    <div id="userHeaderInfo" class="hidden flex items-center space-x-3">
-                        <div class="text-right hidden sm:block">
-                            <p id="navUserName" class="text-sm font-semibold"></p>
-                            <p id="navUserRole" class="text-xs text-green-300"></p>
-                        </div>
-                        <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center space-x-1 shadow-sm">
-                            <i class="fa-solid fa-right-from-bracket"></i>
-                            <span class="hidden sm:inline">ออกจากระบบ</span>
-                        </button>
-                    </div>
+                <div class="flex items-center space-x-3" id="navAuthSection">
+                    <!-- Dynamic Auth Controls -->
                 </div>
             </div>
         </div>
-    </header>
+    </nav>
 
     <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
-        <!-- LOGIN VIEW -->
-        <div id="loginView" class="max-w-md mx-auto my-8 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
-            <div class="text-center mb-6">
-                <div class="w-20 h-20 bg-ipst-greenLight text-ipst-green rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
-                    <i class="fa-solid fa-graduation-cap text-4xl"></i>
+        <!-- Login View -->
+        <div id="viewLogin" class="max-w-md mx-auto my-12 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div class="bg-custom-primary p-6 text-center text-white">
+                <div class="inline-flex p-4 rounded-full bg-white/10 mb-3">
+                    <i class="fa-solid fa-user-graduate text-4xl"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-ipst-blue font-heading">เข้าสู่ระบบการเรียนรู้</h2>
-                <p class="text-gray-500 text-sm mt-1">รายวิชาการออกแบบและเทคโนโลยี ว23104</p>
+                <h2 class="font-heading text-2xl font-bold">เข้าสู่ระบบการเรียนรู้</h2>
+                <p class="text-xs text-blue-200 mt-1">ใช้รหัสนักเรียนเพื่อเข้าใช้งานระบบ</p>
             </div>
-
-            <!-- Login Tabs -->
-            <div class="flex rounded-lg bg-gray-100 p-1 mb-6 text-sm font-medium">
-                <button type="button" id="tabStudentBtn" onclick="switchLoginTab('student')" class="flex-1 py-2 rounded-md text-center bg-white shadow text-ipst-blue font-semibold transition">
-                    <i class="fa-solid fa-user-graduate mr-1"></i> นักเรียน
-                </button>
-                <button type="button" id="tabAdminBtn" onclick="switchLoginTab('admin')" class="flex-1 py-2 rounded-md text-center text-gray-500 hover:text-ipst-blue transition">
-                    <i class="fa-solid fa-user-shield mr-1"></i> ครูผู้สอน (Admin)
-                </button>
-            </div>
-
-            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+            <form id="formLogin" onsubmit="handleLogin(event)" class="p-6 space-y-4">
                 <div>
-                    <label id="usernameLabel" class="block text-sm font-medium text-gray-700 mb-1">รหัสนักเรียน</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อผู้ใช้ / รหัสนักเรียน</label>
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                            <i class="fa-solid fa-id-card"></i>
-                        </span>
-                        <input type="text" id="loginUsername" required placeholder="กรอกรหัสนักเรียน (เช่น 31337)" class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ipst-blue focus:outline-none text-gray-800">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400"><i class="fa-solid fa-id-card"></i></span>
+                        <input type="text" id="loginUsername" required class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" placeholder="กรอกรหัสนักเรียน (เช่น 31337)">
                     </div>
                 </div>
-
                 <div>
-                    <label id="passwordLabel" class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่าน (ใช้รหัสนักเรียน)</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">รหัสผ่าน</label>
                     <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                            <i class="fa-solid fa-lock"></i>
-                        </span>
-                        <input type="password" id="loginPassword" required placeholder="กรอกรหัสผ่าน" class="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ipst-blue focus:outline-none text-gray-800">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400"><i class="fa-solid fa-lock"></i></span>
+                        <input type="password" id="loginPassword" required class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" placeholder="กรอกรหัสผ่าน">
                     </div>
                 </div>
-
-                <button type="submit" class="w-full bg-ipst-blue hover:bg-ipst-blueDark text-white font-semibold py-3 rounded-lg shadow-lg hover:shadow-xl transition flex items-center justify-center space-x-2">
+                <button type="submit" class="w-full bg-custom-primary hover:bg-custom-secondary text-white font-medium py-2.5 rounded-lg shadow-md transition flex items-center justify-center space-x-2">
                     <span>เข้าสู่ระบบ</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </form>
         </div>
 
-        <!-- STUDENT DASHBOARD -->
-        <div id="studentDashboard" class="hidden space-y-6">
-            <!-- Banner -->
-            <div class="bg-gradient-to-r from-ipst-blue to-ipst-blueLight text-white p-6 rounded-2xl shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+        <!-- Student Portal View -->
+        <div id="viewStudent" class="hidden space-y-6">
+            <div class="bg-gradient-to-r from-custom-primary to-custom-secondary text-white p-6 rounded-2xl shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <span class="bg-ipst-green text-white text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-wider">พื้นที่เรียนรู้นักเรียน</span>
-                    <h2 id="studentWelcomeTitle" class="text-2xl font-bold mt-2 font-heading">ยินดีต้อนรับเข้าสู่บทเรียน</h2>
-                    <p class="text-blue-100 text-sm mt-1">เข้าถึงใบความรู้ ส่งงาน และติดตามสถานะคะแนนได้ง่ายๆ ในที่เดียว</p>
+                    <span class="inline-block bg-white/20 text-xs px-3 py-1 rounded-full mb-2">พื้นที่เรียนรู้นักเรียน</span>
+                    <h2 class="font-heading text-2xl font-bold" id="studentWelcomeName">สวัสดี, นักเรียน</h2>
+                    <p class="text-sm text-blue-100">เข้าถึงใบความรู้ ส่งงาน และติดตามสถานะคะแนนได้ง่ายๆ ในที่เดียว</p>
                 </div>
-                <div class="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/20 text-center min-w-[180px]">
-                    <span class="text-xs text-blue-100 block">ความคืบหน้าการส่งงาน</span>
-                    <span id="studentProgressText" class="text-2xl font-bold text-ipst-green font-heading">0 / 0</span>
-                    <span class="text-xs text-blue-200 block mt-1">งานที่ตรวจแล้ว</span>
+                <div class="bg-white/10 p-4 rounded-xl border border-white/20 text-center min-w-[160px]">
+                    <div class="text-xs text-blue-200">ความคืบหน้าการส่งงาน</div>
+                    <div class="font-heading text-3xl font-bold mt-1 text-white" id="studentProgressCount">0 / 0</div>
+                    <div class="text-[10px] text-blue-200">งานที่ตรวจแล้ว</div>
                 </div>
             </div>
 
-            <!-- Student Tabs -->
-            <div class="flex border-b border-gray-200 space-x-2 sm:space-x-4 overflow-x-auto custom-scrollbar">
-                <button id="sTab1Btn" onclick="switchStudentTab('knowledge')" class="py-3 px-4 text-sm font-medium border-b-2 border-ipst-blue text-ipst-blue font-heading flex items-center space-x-2 whitespace-nowrap">
-                    <i class="fa-solid fa-book-open"></i> <span>1. ใบความรู้</span>
+            <!-- Tabs -->
+            <div class="border-b border-gray-200 flex space-x-4">
+                <button onclick="switchStudentTab('materials')" id="tabBtnMaterials" class="py-3 px-4 font-medium border-b-2 border-custom-primary text-custom-primary flex items-center space-x-2">
+                    <i class="fa-solid fa-book-open"></i><span>1. ใบความรู้</span>
                 </button>
-                <button id="sTab2Btn" onclick="switchStudentTab('activity')" class="py-3 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-ipst-blue font-heading flex items-center space-x-2 whitespace-nowrap">
-                    <i class="fa-solid fa-pen-to-square"></i> <span>2. ใบกิจกรรม / ส่งงาน</span>
+                <button onclick="switchStudentTab('assignments')" id="tabBtnAssignments" class="py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-custom-primary flex items-center space-x-2">
+                    <i class="fa-solid fa-pen-to-square"></i><span>2. ใบกิจกรรม / ส่งงาน</span>
                 </button>
-                <button id="sTab3Btn" onclick="switchStudentTab('status')" class="py-3 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-ipst-blue font-heading flex items-center space-x-2 whitespace-nowrap">
-                    <i class="fa-solid fa-chart-line"></i> <span>3. ตรวจสอบสถานะส่งงาน</span>
+                <button onclick="switchStudentTab('status')" id="tabBtnStatus" class="py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-custom-primary flex items-center space-x-2">
+                    <i class="fa-solid fa-chart-line"></i><span>3. ตรวจสอบสถานะส่งงาน</span>
                 </button>
             </div>
 
-            <!-- Student Tab Content 1: Knowledge Sheets -->
-            <div id="studentKnowledgeTab" class="space-y-4">
-                <div class="flex justify-between items-center flex-wrap gap-2">
-                    <h3 class="text-lg font-bold text-gray-800 font-heading"><i class="fa-solid fa-folder-open text-ipst-blue mr-2"></i>คลังใบความรู้เอกสารประกอบการเรียน</h3>
-                    <select id="knowledgeUnitFilter" onchange="renderKnowledgeList()" class="border border-gray-300 rounded-lg text-sm p-2 bg-white focus:ring-2 focus:ring-ipst-blue">
+            <!-- Student Content Sections -->
+            <div id="studentTabMaterials" class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-heading text-xl font-bold text-gray-800"><i class="fa-solid fa-folder-open text-custom-primary mr-2"></i>คลังใบความรู้เอกสารประกอบการเรียน</h3>
+                    <select id="studentMaterialUnitFilter" onchange="renderStudentMaterials()" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm bg-white outline-none">
                         <option value="all">-- ทุกหน่วยการเรียนรู้ --</option>
-                        <option value="หน่วยที่ 1">หน่วยที่ 1 เทคโนโลยีรอบตัวและการแก้ปัญหา</option>
-                        <option value="หน่วยที่ 2">หน่วยที่ 2 กระบวนการออกแบบเชิงวิศวกรรม</option>
-                        <option value="หน่วยที่ 3">หน่วยที่ 3 ผลงานและการสร้างนวัตกรรม</option>
                     </select>
                 </div>
-                <div id="knowledgeGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Dynamic Knowledge items -->
-                </div>
+                <div id="studentMaterialsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
 
-            <!-- Student Tab Content 2: Activity Sheets & Submit -->
-            <div id="studentActivityTab" class="hidden space-y-4">
-                <h3 class="text-lg font-bold text-gray-800 font-heading"><i class="fa-solid fa-tasks text-ipst-green mr-2"></i>รายการใบกิจกรรมและการส่งงาน</h3>
-                <div id="activityGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Dynamic Activity Items -->
-                </div>
+            <div id="studentTabAssignments" class="hidden space-y-4">
+                <h3 class="font-heading text-xl font-bold text-gray-800"><i class="fa-solid fa-tasks text-custom-primary mr-2"></i>รายการใบกิจกรรมประจำหน่วย</h3>
+                <div id="studentAssignmentsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
             </div>
 
-            <!-- Student Tab Content 3: Status Tracking -->
-            <div id="studentStatusTab" class="hidden space-y-4">
-                <h3 class="text-lg font-bold text-gray-800 font-heading"><i class="fa-solid fa-list-check text-ipst-blue mr-2"></i>สรุปรายงานการส่งงานของคุณ</h3>
+            <div id="studentTabStatus" class="hidden space-y-4">
+                <h3 class="font-heading text-xl font-bold text-gray-800"><i class="fa-solid fa-clipboard-check text-custom-primary mr-2"></i>ประวัติและผลการตรวจงาน</h3>
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left text-gray-600">
-                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-gray-50 text-gray-700 font-heading border-b border-gray-200">
                                 <tr>
-                                    <th class="px-4 py-3">ชื่อใบกิจกรรม</th>
-                                    <th class="px-4 py-3">วันกำหนดส่ง</th>
-                                    <th class="px-4 py-3">สถานะการส่ง</th>
-                                    <th class="px-4 py-3">งานที่ส่ง</th>
-                                    <th class="px-4 py-3">สถานะตรวจ</th>
-                                    <th class="px-4 py-3">คะแนน</th>
-                                    <th class="px-4 py-3">ข้อเสนอแนะจากครู</th>
+                                    <th class="p-3">วันเวลาส่ง</th>
+                                    <th class="p-3">หัวข้อใบกิจกรรม</th>
+                                    <th class="p-3">ไฟล์/ลิงก์งาน</th>
+                                    <th class="p-3 text-center">สถานะ</th>
+                                    <th class="p-3 text-center">คะแนน</th>
+                                    <th class="p-3">ข้อเสนอแนะจากครู</th>
                                 </tr>
                             </thead>
-                            <tbody id="studentStatusTableBody">
-                                <!-- Dynamic Rows -->
-                            </tbody>
+                            <tbody id="studentStatusTable" class="divide-y divide-gray-100"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ADMIN DASHBOARD -->
-        <div id="adminDashboard" class="hidden space-y-6">
-            <!-- Admin Banner -->
-            <div class="bg-slate-800 text-white p-6 rounded-2xl shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+        <!-- Admin View -->
+        <div id="viewAdmin" class="hidden space-y-6">
+            <div class="bg-slate-800 text-white p-6 rounded-2xl shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <span class="bg-ipst-green text-white text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-wider">แผงควบคุมระบบสำหรับผู้สอน (Admin)</span>
-                    <h2 class="text-2xl font-bold mt-2 font-heading">ระบบจัดการวิชาการออกแบบและเทคโนโลยี ว23104</h2>
-                    <p class="text-slate-300 text-sm mt-1">จัดการสื่อการสอน ตรวจงานนักเรียน ซิงค์ Google Sheets แบบเรียลไทม์</p>
+                    <span class="inline-block bg-blue-500/30 text-blue-300 text-xs px-3 py-1 rounded-full mb-2">ระบบผู้ดูแลระบบ (Admin)</span>
+                    <h2 class="font-heading text-2xl font-bold">แผงควบคุมการจัดการเรียนการสอน</h2>
+                    <p class="text-sm text-slate-300">จัดการรายชื่อนักเรียน สื่อการเรียนรู้ ใบกิจกรรม และตรวจงาน</p>
                 </div>
-                <div class="flex items-center space-x-3">
-                    <button onclick="syncDataFromCloud(true)" class="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 shadow">
-                        <i class="fa-solid fa-rotate"></i>
-                        <span>รีเฟรชข้อมูล Cloud</span>
+            </div>
+
+            <!-- Admin Tabs -->
+            <div class="border-b border-gray-200 flex space-x-4 overflow-x-auto">
+                <button onclick="switchAdminTab('grading')" id="adminTabBtnGrading" class="py-3 px-4 font-medium border-b-2 border-custom-primary text-custom-primary whitespace-nowrap">
+                    <i class="fa-solid fa-check-double mr-2"></i>1. ตรวจงานนักเรียน
+                </button>
+                <button onclick="switchAdminTab('students')" id="adminTabBtnStudents" class="py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-custom-primary whitespace-nowrap">
+                    <i class="fa-solid fa-users mr-2"></i>2. รายชื่อนักเรียน (407 คน)
+                </button>
+                <button onclick="switchAdminTab('materials')" id="adminTabBtnMaterials" class="py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-custom-primary whitespace-nowrap">
+                    <i class="fa-solid fa-file-powerpoint mr-2"></i>3. จัดการใบความรู้/กิจกรรม
+                </button>
+                <button onclick="switchAdminTab('settings')" id="adminTabBtnSettings" class="py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-custom-primary whitespace-nowrap">
+                    <i class="fa-solid fa-cloud-arrow-up mr-2"></i>4. ตั้งค่า Google Sheets
+                </button>
+            </div>
+
+            <!-- Admin Content Sections -->
+            <div id="adminTabGrading" class="space-y-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-wrap gap-4 justify-between items-center">
+                    <div class="flex items-center space-x-3">
+                        <select id="adminFilterRoom" onchange="renderAdminSubmissions()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
+                            <option value="all">-- เลือกห้องเรียน (ทุกห้อง) --</option>
+                        </select>
+                        <select id="adminFilterStatus" onchange="renderAdminSubmissions()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
+                            <option value="all">-- สถานะการตรวจ (ทั้งหมด) --</option>
+                            <option value="รอตรวจ">รอตรวจ</option>
+                            <option value="ตรวจแล้ว">ตรวจแล้ว</option>
+                        </select>
+                    </div>
+                    <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-sm flex items-center space-x-2">
+                        <i class="fa-solid fa-file-excel"></i><span>ส่งออกคะแนนเป็น Excel</span>
                     </button>
-                    <button onclick="exportDataToExcel()" class="bg-ipst-green hover:bg-ipst-greenDark text-white px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 shadow">
-                        <i class="fa-solid fa-file-excel"></i>
-                        <span>ส่งออก Excel</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Admin Stats Summary -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-4">
-                    <div class="p-3 bg-blue-100 text-ipst-blue rounded-lg"><i class="fa-solid fa-users text-2xl"></i></div>
-                    <div>
-                        <p class="text-xs text-gray-500">นักเรียนทั้งหมด</p>
-                        <p id="statTotalStudents" class="text-xl font-bold font-heading text-gray-800">0 คน</p>
-                    </div>
-                </div>
-                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-4">
-                    <div class="p-3 bg-green-100 text-ipst-green rounded-lg"><i class="fa-solid fa-file-arrow-up text-2xl"></i></div>
-                    <div>
-                        <p class="text-xs text-gray-500">งานที่ถูกส่งแล้ว</p>
-                        <p id="statTotalSubmissions" class="text-xl font-bold font-heading text-gray-800">0 งาน</p>
-                    </div>
-                </div>
-                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-4">
-                    <div class="p-3 bg-yellow-100 text-yellow-600 rounded-lg"><i class="fa-solid fa-clock text-2xl"></i></div>
-                    <div>
-                        <p class="text-xs text-gray-500">รอการตรวจ</p>
-                        <p id="statPendingGrading" class="text-xl font-bold font-heading text-yellow-600">0 งาน</p>
-                    </div>
-                </div>
-                <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-4">
-                    <div class="p-3 bg-purple-100 text-purple-600 rounded-lg"><i class="fa-solid fa-check-double text-2xl"></i></div>
-                    <div>
-                        <p class="text-xs text-gray-500">ตรวจแล้ว</p>
-                        <p id="statCheckedGrading" class="text-xl font-bold font-heading text-ipst-green">0 งาน</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Admin Navigation Tabs -->
-            <div class="flex border-b border-gray-200 space-x-2 sm:space-x-4 overflow-x-auto custom-scrollbar">
-                <button id="aTab1Btn" onclick="switchAdminTab('grading')" class="py-3 px-4 text-sm font-medium border-b-2 border-ipst-blue text-ipst-blue font-heading flex items-center space-x-2 whitespace-nowrap">
-                    <i class="fa-solid fa-clipboard-check"></i> <span>1. ระบบตรวจงานนักเรียน</span>
-                </button>
-                <button id="aTab2Btn" onclick="switchAdminTab('content')" class="py-3 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-ipst-blue font-heading flex items-center space-x-2 whitespace-nowrap">
-                    <i class="fa-solid fa-folder-plus"></i> <span>2. จัดการใบความรู้ & กิจกรรม</span>
-                </button>
-                <button id="aTab3Btn" onclick="switchAdminTab('students')" class="py-3 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-ipst-blue font-heading flex items-center space-x-2 whitespace-nowrap">
-                    <i class="fa-solid fa-address-book"></i> <span>3. จัดการรายชื่อนักเรียน (Excel)</span>
-                </button>
-                <button id="aTab4Btn" onclick="switchAdminTab('settings')" class="py-3 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-ipst-blue font-heading flex items-center space-x-2 whitespace-nowrap">
-                    <i class="fa-solid fa-gears"></i> <span>4. เชื่อมต่อ Google Sheets</span>
-                </button>
-            </div>
-
-            <!-- Admin Tab Content 1: Grading Desk -->
-            <div id="adminGradingTab" class="space-y-4">
-                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col sm:flex-row justify-between gap-4">
-                    <div class="flex flex-1 gap-3 flex-wrap">
-                        <select id="adminGradingActivityFilter" onchange="renderAdminGradingTable()" class="border border-gray-300 rounded-lg text-sm p-2 bg-white focus:ring-2 focus:ring-ipst-blue">
-                            <option value="all">-- ทุกใบกิจกรรม --</option>
-                        </select>
-                        <select id="adminGradingRoomFilter" onchange="renderAdminGradingTable()" class="border border-gray-300 rounded-lg text-sm p-2 bg-white focus:ring-2 focus:ring-ipst-blue">
-                            <option value="all">-- ทุกห้องเรียน --</option>
-                            <option value="3/1">ม.3/1</option>
-                            <option value="3/2">ม.3/2</option>
-                            <option value="3/3">ม.3/3</option>
-                            <option value="3/4">ม.3/4</option>
-                            <option value="3/5">ม.3/5</option>
-                            <option value="3/6">ม.3/6</option>
-                            <option value="3/7">ม.3/7</option>
-                            <option value="3/8">ม.3/8</option>
-                            <option value="3/9">ม.3/9</option>
-                            <option value="3/10">ม.3/10</option>
-                            <option value="3/11">ม.3/11</option>
-                        </select>
-                        <select id="adminGradingStatusFilter" onchange="renderAdminGradingTable()" class="border border-gray-300 rounded-lg text-sm p-2 bg-white focus:ring-2 focus:ring-ipst-blue">
-                            <option value="all">-- สถานะการตรวจทั้งหมด --</option>
-                            <option value="pending">รอการตรวจ</option>
-                            <option value="checked">ตรวจแล้ว</option>
-                            <option value="unsubmitted">ยังไม่ส่งงาน</option>
-                        </select>
-                    </div>
                 </div>
 
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left text-gray-600">
-                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-gray-50 text-gray-700 font-heading border-b border-gray-200">
                                 <tr>
-                                    <th class="px-4 py-3">รหัส / ชื่อนักเรียน</th>
-                                    <th class="px-4 py-3">ห้อง</th>
-                                    <th class="px-4 py-3">ใบกิจกรรม</th>
-                                    <th class="px-4 py-3">ไฟล์ / ลิงก์แนบ</th>
-                                    <th class="px-4 py-3">เวลาส่งงาน</th>
-                                    <th class="px-4 py-3">สถานะ</th>
-                                    <th class="px-4 py-3">คะแนน</th>
-                                    <th class="px-4 py-3 text-center">ดำเนินการ</th>
+                                    <th class="p-3">วันเวลา</th>
+                                    <th class="p-3">รหัส/ชื่อนักเรียน</th>
+                                    <th class="p-3">ห้อง</th>
+                                    <th class="p-3">ใบกิจกรรม</th>
+                                    <th class="p-3">งานที่ส่ง</th>
+                                    <th class="p-3 text-center">สถานะ</th>
+                                    <th class="p-3 text-center">คะแนน</th>
+                                    <th class="p-3 text-center">จัดการ</th>
                                 </tr>
                             </thead>
-                            <tbody id="adminGradingTableBody">
-                                <!-- Dynamic Rows -->
-                            </tbody>
+                            <tbody id="adminSubmissionsTable" class="divide-y divide-gray-100"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- Admin Tab Content 2: Manage Course Items -->
-            <div id="adminContentTab" class="hidden space-y-6">
-                <!-- Add Knowledge Form -->
+            <div id="adminTabStudents" class="hidden space-y-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-wrap justify-between items-center gap-4">
+                    <div class="flex items-center space-x-3">
+                        <select id="adminStudentRoomSelect" onchange="renderAdminStudents()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
+                            <option value="all">-- แสดงทุกห้องเรียน --</option>
+                        </select>
+                        <span class="text-sm text-gray-500" id="adminStudentCountText">จำนวนนักเรียนทั้งหมด 407 คน</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="max-h-[500px] overflow-y-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-gray-50 text-gray-700 font-heading border-b border-gray-200 sticky top-0">
+                                <tr>
+                                    <th class="p-3">รหัสนักเรียน</th>
+                                    <th class="p-3">ชื่อ - นามสกุล</th>
+                                    <th class="p-3">ห้องเรียน</th>
+                                    <th class="p-3">เลขที่</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminStudentsTable" class="divide-y divide-gray-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="adminTabMaterials" class="hidden space-y-6">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
-                        <h3 class="text-lg font-bold text-ipst-blue font-heading border-b pb-2 flex items-center justify-between">
-                            <span><i class="fa-solid fa-plus-circle mr-2"></i>เพิ่มใบความรู้</span>
-                            <span class="text-xs font-semibold bg-green-100 text-green-700 px-2 py-0.5 rounded"><i class="fa-solid fa-cloud-arrow-up mr-1"></i>ซิงค์ Google Sheets</span>
-                        </h3>
-                        <form onsubmit="handleAddKnowledge(event)" class="space-y-3">
+                    <!-- Form Knowledge -->
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 space-y-4">
+                        <h4 class="font-heading font-bold text-lg text-custom-primary"><i class="fa-solid fa-plus-circle mr-2"></i>เพิ่มใบความรู้ใหม่</h4>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">ชื่อใบความรู้</label>
+                            <input type="text" id="addMatTitle" class="w-full border border-gray-300 rounded-lg p-2 text-sm" placeholder="เช่น ใบความรู้ที่ 1.1 เทคโนโลยีและการเปลี่ยนแปลง">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">ชื่อใบความรู้</label>
-                                <input type="text" id="kTitle" required placeholder="เช่น ใบความรู้ที่ 1.1 เทคโนโลยีและการเปลี่ยนแปลง" class="w-full text-sm p-2 border border-gray-300 rounded-lg">
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-600 mb-1">หน่วยการเรียนรู้</label>
-                                    <select id="kUnit" class="w-full text-sm p-2 border border-gray-300 rounded-lg">
-                                        <option value="หน่วยที่ 1">หน่วยที่ 1</option>
-                                        <option value="หน่วยที่ 2">หน่วยที่ 2</option>
-                                        <option value="หน่วยที่ 3">หน่วยที่ 3</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-600 mb-1">ประเภทสื่อ</label>
-                                    <select id="kType" class="w-full text-sm p-2 border border-gray-300 rounded-lg">
-                                        <option value="pdf">ไฟล์ PDF</option>
-                                        <option value="image">รูปภาพ (JPEG/PNG)</option>
-                                        <option value="link">ลิงก์ภายนอก / เว็บไซต์</option>
-                                    </select>
-                                </div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">หน่วยการเรียนรู้</label>
+                                <input type="text" id="addMatUnit" class="w-full border border-gray-300 rounded-lg p-2 text-sm" placeholder="เช่น หน่วยที่ 1">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">ลิงก์ไฟล์หรือ URL</label>
-                                <input type="url" id="kUrl" required placeholder="https://..." class="w-full text-sm p-2 border border-gray-300 rounded-lg">
+                                <label class="block text-xs font-medium text-gray-600 mb-1">ประเภทสื่อ</label>
+                                <select id="addMatType" class="w-full border border-gray-300 rounded-lg p-2 text-sm bg-white">
+                                    <option value="pdf">PDF Document</option>
+                                    <option value="link">Link / Website</option>
+                                    <option value="video">Video Lesson</option>
+                                </select>
                             </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">คำอธิบายย่อ</label>
-                                <textarea id="kDesc" rows="2" placeholder="สรุปเนื้อหาสำคัญพอสังเขป" class="w-full text-sm p-2 border border-gray-300 rounded-lg"></textarea>
-                            </div>
-                            <button type="submit" class="w-full bg-ipst-blue hover:bg-ipst-blueDark text-white font-medium py-2 rounded-lg text-sm transition">
-                                <i class="fa-solid fa-cloud-arrow-up mr-1"></i> บันทึกใบความรู้ & ซิงค์ขึ้น Cloud
-                            </button>
-                        </form>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">URL เอกสาร/สื่อการเรียนรู้</label>
+                            <input type="url" id="addMatUrl" class="w-full border border-gray-300 rounded-lg p-2 text-sm" placeholder="https://drive.google.com/...">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">คำอธิบายย่อ</label>
+                            <textarea id="addMatDesc" rows="2" class="w-full border border-gray-300 rounded-lg p-2 text-sm" placeholder="สรุปเนื้อหาสำคัญพอสังเขป"></textarea>
+                        </div>
+                        <button onclick="addMaterial()" class="w-full bg-custom-primary hover:bg-custom-secondary text-white font-medium py-2 rounded-lg text-sm transition">
+                            <i class="fa-solid fa-cloud-arrow-up mr-2"></i>บันทึกใบความรู้ & ซิงค์ขึ้น Cloud
+                        </button>
                     </div>
 
-                    <!-- Add Activity Form -->
-                    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
-                        <h3 class="text-lg font-bold text-ipst-green font-heading border-b pb-2 flex items-center justify-between">
-                            <span><i class="fa-solid fa-file-circle-plus mr-2"></i>เพิ่มใบกิจกรรม</span>
-                            <span class="text-xs font-semibold bg-green-100 text-green-700 px-2 py-0.5 rounded"><i class="fa-solid fa-cloud-arrow-up mr-1"></i>ซิงค์ Google Sheets</span>
-                        </h3>
-                        <form onsubmit="handleAddActivity(event)" class="space-y-3">
+                    <!-- Form Activity -->
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 space-y-4">
+                        <h4 class="font-heading font-bold text-lg text-emerald-700"><i class="fa-solid fa-plus-circle mr-2"></i>เพิ่มใบกิจกรรมใหม่</h4>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">ชื่อใบกิจกรรม</label>
+                            <input type="text" id="addActTitle" class="w-full border border-gray-300 rounded-lg p-2 text-sm" placeholder="เช่น ใบกิจกรรมที่ 1.1 สำรวจเทคโนโลยีรอบตัว">
+                        </div>
+                        <div class="grid grid-cols-3 gap-3">
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">ชื่อใบกิจกรรม</label>
-                                <input type="text" id="aTitle" required placeholder="เช่น ใบกิจกรรมที่ 1.1 วิเคราะห์เทคโนโลยี" class="w-full text-sm p-2 border border-gray-300 rounded-lg">
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-600 mb-1">หน่วยการเรียนรู้</label>
-                                    <select id="aUnit" class="w-full text-sm p-2 border border-gray-300 rounded-lg">
-                                        <option value="หน่วยที่ 1">หน่วยที่ 1</option>
-                                        <option value="หน่วยที่ 2">หน่วยที่ 2</option>
-                                        <option value="หน่วยที่ 3">หน่วยที่ 3</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-600 mb-1">คะแนนเต็ม</label>
-                                    <input type="number" id="aMaxScore" value="10" required min="1" class="w-full text-sm p-2 border border-gray-300 rounded-lg">
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-600 mb-1">กำหนดยื่นส่ง</label>
-                                    <input type="date" id="aDueDate" required class="w-full text-sm p-2 border border-gray-300 rounded-lg">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-gray-600 mb-1">ไฟล์โจทย์ (PDF/Link)</label>
-                                    <input type="url" id="aPdfUrl" placeholder="https://..." class="w-full text-sm p-2 border border-gray-300 rounded-lg">
-                                </div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">หน่วยการเรียนรู้</label>
+                                <input type="text" id="addActUnit" class="w-full border border-gray-300 rounded-lg p-2 text-sm" placeholder="หน่วยที่ 1">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">คำชี้แจงการทำกิจกรรม</label>
-                                <textarea id="aDesc" rows="2" placeholder="รายละเอียดขั้นตอนคำสั่งในการทำงาน" class="w-full text-sm p-2 border border-gray-300 rounded-lg"></textarea>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">คะแนนเต็ม</label>
+                                <input type="number" id="addActMaxScore" value="10" class="w-full border border-gray-300 rounded-lg p-2 text-sm">
                             </div>
-                            <button type="submit" class="w-full bg-ipst-green hover:bg-ipst-greenDark text-white font-medium py-2 rounded-lg text-sm transition">
-                                <i class="fa-solid fa-cloud-arrow-up mr-1"></i> บันทึกใบกิจกรรม & ซิงค์ขึ้น Cloud
-                            </button>
-                        </form>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">กำหนดส่ง</label>
+                                <input type="date" id="addActDueDate" class="w-full border border-gray-300 rounded-lg p-2 text-sm">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">URL ใบงาน/โจทย์กิจกรรม (PDF/Drive)</label>
+                            <input type="url" id="addActPdfUrl" class="w-full border border-gray-300 rounded-lg p-2 text-sm" placeholder="https://...">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">คำชี้แจงการทำกิจกรรม</label>
+                            <textarea id="addActDesc" rows="2" class="w-full border border-gray-300 rounded-lg p-2 text-sm" placeholder="รายละเอียดขั้นตอนคำสั่งในการทำงาน"></textarea>
+                        </div>
+                        <button onclick="addActivity()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 rounded-lg text-sm transition">
+                            <i class="fa-solid fa-cloud-arrow-up mr-2"></i>บันทึกใบกิจกรรม & ซิงค์ขึ้น Cloud
+                        </button>
                     </div>
                 </div>
 
-                <!-- Existing Items List Table -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-                    <div class="flex justify-between items-center mb-3 flex-wrap gap-2">
-                        <h4 class="font-bold text-gray-800 font-heading">รายการสื่อและใบกิจกรรมในระบบ (เรียลไทม์)</h4>
-                        <button onclick="syncMaterialsToCloud()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg transition flex items-center">
-                            <i class="fa-solid fa-cloud-arrow-up mr-1 text-ipst-blue"></i> บังคับซิงค์เอกสารทั้งหมดไปยัง Google Sheets
+                <!-- Live Lists -->
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-200 space-y-4">
+                    <div class="flex justify-between items-center border-b pb-3">
+                        <h4 class="font-heading font-bold text-lg text-gray-800">รายการสื่อและใบกิจกรรมในระบบ (เรียลไทม์)</h4>
+                        <button onclick="forceSyncAllMaterialsToSheet()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium shadow-sm">
+                            <i class="fa-solid fa-cloud-arrow-up mr-1"></i>บังคับซิงค์เอกสารทั้งหมดไปยัง Google Sheets
                         </button>
                     </div>
-                    <div id="adminContentList" class="space-y-3">
-                        <!-- Items rendered here -->
-                    </div>
+                    <div id="adminMaterialsLiveList" class="space-y-2"></div>
                 </div>
             </div>
 
-            <!-- Admin Tab Content 3: Student Management & Excel Upload -->
-            <div id="adminStudentsTab" class="hidden space-y-6">
-                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-4">
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-800 font-heading"><i class="fa-solid fa-file-excel text-ipst-green mr-2"></i>นำเข้าข้อมูลนักเรียนจากไฟล์ Excel</h3>
-                            <p class="text-xs text-gray-500 mt-1">ไฟล์ควรมีคอลัมน์: <code class="bg-gray-100 px-1 py-0.5 rounded text-ipst-blue font-mono">id</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-ipst-blue font-mono">name</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-ipst-blue font-mono">room</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-ipst-blue font-mono">number</code></p>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <label class="cursor-pointer bg-ipst-green hover:bg-ipst-greenDark text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 shadow">
-                                <i class="fa-solid fa-upload"></i>
-                                <span>เลือกไฟล์ Excel (.xlsx)</span>
-                                <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" onchange="handleExcelUpload(event)" class="hidden">
-                            </label>
-                            <button onclick="downloadSampleExcel()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium transition">
-                                <i class="fa-solid fa-download mr-1"></i> ตัวอย่างไฟล์
-                            </button>
-                        </div>
+            <div id="adminTabSettings" class="hidden space-y-4">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 max-w-2xl space-y-4">
+                    <h4 class="font-heading font-bold text-lg text-gray-800"><i class="fa-solid fa-link text-custom-primary mr-2"></i>เชื่อมต่อ Google Apps Script Web App</h4>
+                    <p class="text-sm text-gray-600">นำ URL ที่ได้จากการ Deploy Google Apps Script มากรอกที่นี่ เพื่อเปิดใช้งานการซิงค์ข้อมูลผ่าน Google Sheets แบบเรียลไทม์</p>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Web App URL</label>
+                        <input type="url" id="settingScriptUrl" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm" placeholder="https://script.google.com/macros/s/.../exec">
                     </div>
-
-                    <!-- Add single student form -->
-                    <form onsubmit="handleAddSingleStudent(event)" class="grid grid-cols-1 sm:grid-cols-5 gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
-                        <input type="text" id="addStdId" required placeholder="รหัสนักเรียน (31xxx)" class="text-sm p-2 border border-gray-300 rounded-lg">
-                        <input type="text" id="addStdName" required placeholder="ชื่อ-นามสกุล" class="text-sm p-2 border border-gray-300 rounded-lg col-span-2">
-                        <select id="addStdRoom" class="text-sm p-2 border border-gray-300 rounded-lg">
-                            <option value="3/1">ม.3/1</option>
-                            <option value="3/2">ม.3/2</option>
-                            <option value="3/3">ม.3/3</option>
-                            <option value="3/4">ม.3/4</option>
-                            <option value="3/5">ม.3/5</option>
-                            <option value="3/6">ม.3/6</option>
-                            <option value="3/7">ม.3/7</option>
-                            <option value="3/8">ม.3/8</option>
-                            <option value="3/9">ม.3/9</option>
-                            <option value="3/10">ม.3/10</option>
-                            <option value="3/11">ม.3/11</option>
-                        </select>
-                        <button type="submit" class="bg-ipst-blue hover:bg-ipst-blueDark text-white text-sm font-medium rounded-lg p-2 transition">
-                            <i class="fa-solid fa-plus mr-1"></i> เพิ่มนักเรียน
-                        </button>
-                    </form>
-
-                    <!-- Student List Table -->
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left text-gray-600">
-                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-200">
-                                <tr>
-                                    <th class="px-4 py-3">รหัสนักเรียน (Username/Password)</th>
-                                    <th class="px-4 py-3">ชื่อ - นามสกุล</th>
-                                    <th class="px-4 py-3">ห้องเรียน</th>
-                                    <th class="px-4 py-3">เลขที่</th>
-                                    <th class="px-4 py-3 text-center">จัดการ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="adminStudentTableBody">
-                                <!-- Dynamic Student Rows -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Admin Tab Content 4: Settings & Google Sheets Webhook -->
-            <div id="adminSettingsTab" class="hidden space-y-6">
-                <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
-                    <h3 class="text-lg font-bold text-gray-800 font-heading"><i class="fa-brands fa-google-drive text-green-600 mr-2"></i>การเชื่อมต่อ Google Sheets API (ซิงค์ข้ามอุปกรณ์)</h3>
-                    <p class="text-sm text-gray-600">
-                        เมื่อวาง URL Web App ตรงนี้ ระบบจะทำการซิงค์ใบความรู้ ใบกิจกรรม การส่งงาน และผลการตรวจงาน ไปยัง Google Sheets เพื่อให้อุปกรณ์ทุกเครื่อง (มือถือและคอมพิวเตอร์) แสดงผลตรงกัน
-                    </p>
-
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Google Apps Script Web App URL</label>
-                            <input type="url" id="googleScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full text-sm p-2.5 border border-gray-300 rounded-lg">
-                        </div>
-                        <div class="flex space-x-2">
-                            <button onclick="saveGoogleScriptUrl()" class="bg-ipst-blue hover:bg-ipst-blueDark text-white text-sm font-medium px-4 py-2 rounded-lg transition shadow-sm">
-                                <i class="fa-solid fa-link mr-1"></i> บันทึก URL & ดึงข้อมูลทันที
-                            </button>
-                            <button onclick="testGoogleScriptConnection()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition">
-                                <i class="fa-solid fa-vial mr-1"></i> ทดสอบการเชื่อมต่อ
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="mt-6 border-t pt-4">
-                        <h4 class="font-bold text-gray-700 font-heading text-sm mb-2">โค้ด Google Apps Script (นำไปวางใน Google Sheet)</h4>
-                        <p class="text-xs text-gray-500 mb-2">สร้าง Google Sheet เปล่า 1 ไฟล์ $\rightarrow$ เมนู <b>ส่วนขยาย</b> $\rightarrow$ <b>Apps Script</b> $\rightarrow$ วางโค้ดด้านล่างแล้วกด **Deploy (ทำให้ใช้งานได้)** เป็น **Web App (ทุกคน/Anyone)**:</p>
-                        <pre class="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto font-mono leading-relaxed custom-scrollbar">
-// โค้ด Google Apps Script สำหรับระบบจัดการเรียนรู้ ว23104
-
-function doGet(e) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  
-  var kSheet = ss.getSheetByName("Knowledge") || ss.insertSheet("Knowledge");
-  var aSheet = ss.getSheetByName("Activities") || ss.insertSheet("Activities");
-  var sSheet = ss.getSheetByName("Submissions") || ss.insertSheet("Submissions");
-  
-  var kData = kSheet.getDataRange().getValues();
-  var knowledge = [];
-  for(var i=1; i&lt;kData.length; i++){
-    if(kData[i][0]) {
-      knowledge.push({ id: kData[i][0], title: kData[i][1], unit: kData[i][2], type: kData[i][3], url: kData[i][4], desc: kData[i][5] });
-    }
-  }
-  
-  var aData = aSheet.getDataRange().getValues();
-  var activities = [];
-  for(var j=1; j&lt;aData.length; j++){
-    if(aData[j][0]) {
-      activities.push({ id: aData[j][0], title: aData[j][1], unit: aData[j][2], maxScore: aData[j][3], dueDate: aData[j][4], pdfUrl: aData[j][5], desc: aData[j][6] });
-    }
-  }
-  
-  var sData = sSheet.getDataRange().getValues();
-  var submissions = [];
-  for(var k=1; k&lt;sData.length; k++){
-    if(sData[k][0]) {
-      submissions.push({
-        id: sData[k][0], submitDate: sData[k][1], studentId: String(sData[k][2]), studentName: sData[k][3], room: sData[k][4],
-        activityTitle: sData[k][5], fileUrl: sData[k][6], status: sData[k][7], score: sData[k][8], feedback: sData[k][9], activityId: sData[k][10]
-      });
-    }
-  }
-
-  return ContentService.createTextOutput(JSON.stringify({
-    result: 'success', knowledge: knowledge, activities: activities, submissions: submissions
-  })).setMimeType(ContentService.MimeType.JSON);
-}
-
-function doPost(e) {
-  var lock = LockService.getScriptLock();
-  lock.tryLock(10000);
-  try {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var data = JSON.parse(e.postData.contents);
-    
-    if (data.action === "syncMaterials") {
-      var kSheet = ss.getSheetByName("Knowledge") || ss.insertSheet("Knowledge");
-      kSheet.clear();
-      kSheet.appendRow(["ID", "Title", "Unit", "Type", "URL", "Description"]);
-      if (data.knowledge &amp;&amp; data.knowledge.length &gt; 0) {
-        data.knowledge.forEach(function(k) { kSheet.appendRow([k.id, k.title, k.unit, k.type, k.url, k.desc || '']); });
-      }
-      
-      var aSheet = ss.getSheetByName("Activities") || ss.insertSheet("Activities");
-      aSheet.clear();
-      aSheet.appendRow(["ID", "Title", "Unit", "MaxScore", "DueDate", "PdfUrl", "Description"]);
-      if (data.activities &amp;&amp; data.activities.length &gt; 0) {
-        data.activities.forEach(function(a) { aSheet.appendRow([a.id, a.title, a.unit, a.maxScore, a.dueDate, a.pdfUrl || '', a.desc || '']); });
-      }
-      return ContentService.createTextOutput(JSON.stringify({ result: "success" })).setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    if (data.action === "submitWork") {
-      var sSheet = ss.getSheetByName("Submissions") || ss.insertSheet("Submissions");
-      if (sSheet.getLastRow() === 0) {
-        sSheet.appendRow(["SubID", "SubmitDate", "StudentID", "StudentName", "Room", "ActivityTitle", "FileUrl", "Status", "Score", "Feedback", "ActivityID"]);
-      }
-      
-      var rows = sSheet.getDataRange().getValues();
-      var found = false;
-      for (var i = 1; i &lt; rows.length; i++) {
-        if (String(rows[i][2]) == String(data.studentId) &amp;&amp; (rows[i][10] == data.activityId || rows[i][5] == data.activityTitle)) {
-          sSheet.getRange(i + 1, 2).setValue(data.submitDate || new Date());
-          sSheet.getRange(i + 1, 7).setValue(data.fileUrl);
-          sSheet.getRange(i + 1, 8).setValue("รอตรวจ");
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        sSheet.appendRow([
-          data.id || 'sub-' + Date.now(), data.submitDate || new Date(), data.studentId, data.studentName, data.room, data.activityTitle, data.fileUrl, "รอตรวจ", "", "", data.activityId
-        ]);
-      }
-      return ContentService.createTextOutput(JSON.stringify({ result: "success" })).setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    if (data.action === "gradeWork") {
-      var sSheet = ss.getSheetByName("Submissions") || ss.insertSheet("Submissions");
-      var rows = sSheet.getDataRange().getValues();
-      for (var i = 1; i &lt; rows.length; i++) {
-        if (rows[i][0] == data.id || (String(rows[i][2]) == String(data.studentId) &amp;&amp; (rows[i][10] == data.activityId || rows[i][5] == data.activityTitle))) {
-          sSheet.getRange(i + 1, 8).setValue("ตรวจแล้ว");
-          sSheet.getRange(i + 1, 9).setValue(data.score);
-          sSheet.getRange(i + 1, 10).setValue(data.feedback);
-          break;
-        }
-      }
-      return ContentService.createTextOutput(JSON.stringify({ result: "success" })).setMimeType(ContentService.MimeType.JSON);
-    }
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ result: "error", error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
-  } finally {
-    lock.releaseLock();
-  }
-}
-                        </pre>
-                    </div>
+                    <button onclick="saveScriptUrlSetting()" class="bg-custom-primary hover:bg-custom-secondary text-white px-5 py-2 rounded-lg text-sm font-medium transition">
+                        <i class="fa-solid fa-save mr-2"></i>บันทึกการตั้งค่า
+                    </button>
                 </div>
             </div>
         </div>
+
     </main>
-
-    <!-- Modal: Student Submit Work -->
-    <div id="submitWorkModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transform transition-all">
-            <div class="bg-ipst-blue text-white p-4 flex justify-between items-center">
-                <h3 class="font-bold text-lg font-heading flex items-center"><i class="fa-solid fa-paper-plane mr-2"></i>ส่งใบกิจกรรม</h3>
-                <button onclick="closeSubmitModal()" class="text-white/80 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <form onsubmit="handleStudentSubmit(event)" class="p-6 space-y-4">
-                <input type="hidden" id="modalActivityId">
-                <div>
-                    <p id="modalActivityTitle" class="font-bold text-ipst-blue text-base font-heading"></p>
-                    <p id="modalActivityDueDate" class="text-xs text-red-500 mt-0.5"></p>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">ลิงก์แนบงานหรือไฟล์ PDF (Google Drive, Canva, Docs)</label>
-                    <input type="url" id="modalFileUrl" required placeholder="https://drive.google.com/... หรือ https://canva.com/..." class="w-full text-sm p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ipst-blue">
-                    <p class="text-[11px] text-gray-400 mt-1">* กรุณาเปิดสิทธิ์การเข้าถึงลิงก์ให้เป็น "ทุกคนที่มีลิงก์สามารถดูได้"</p>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">บันทึกเพิ่มเติมถึงครู (ถ้ามี)</label>
-                    <textarea id="modalStudentNote" rows="2" placeholder="ข้อความเพิ่มเติม..." class="w-full text-sm p-2.5 border border-gray-300 rounded-lg"></textarea>
-                </div>
-                <div class="flex justify-end space-x-2 pt-2 border-t">
-                    <button type="button" onclick="closeSubmitModal()" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">ยกเลิก</button>
-                    <button type="submit" class="px-5 py-2 text-sm bg-ipst-green hover:bg-ipst-greenDark text-white font-medium rounded-lg shadow">
-                        <i class="fa-solid fa-check mr-1"></i> ยืนยันการส่งงาน
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal: Teacher Grading -->
-    <div id="gradeWorkModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-            <div class="bg-slate-800 text-white p-4 flex justify-between items-center">
-                <h3 class="font-bold text-lg font-heading"><i class="fa-solid fa-pen-nib mr-2"></i>ตรวจและให้คะแนนงาน</h3>
-                <button onclick="closeGradeModal()" class="text-white/80 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <form onsubmit="handleSaveGrade(event)" class="p-6 space-y-4">
-                <input type="hidden" id="gradeSubmissionId">
-                
-                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs space-y-1">
-                    <p class="font-bold text-slate-800 text-sm" id="gradeStudentName"></p>
-                    <p class="text-slate-600" id="gradeActivityName"></p>
-                    <div class="pt-2 flex items-center space-x-2">
-                        <a id="gradeViewFileLink" href="#" target="_blank" class="bg-ipst-blue text-white px-3 py-1 rounded inline-flex items-center text-xs">
-                            <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> เปิดดูงานที่นักเรียนส่ง
-                        </a>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">ให้คะแนน (คะแนนเต็ม <span id="gradeMaxScoreText">10</span>)</label>
-                    <input type="number" id="gradeScore" required min="0" step="0.5" class="w-full text-sm p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-ipst-blue">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 mb-1">ข้อเสนอแนะ / คำติชมจากครู</label>
-                    <textarea id="gradeFeedback" rows="3" placeholder="เขียนข้อเสนอแนะให้นักเรียน..." class="w-full text-sm p-2.5 border border-gray-300 rounded-lg"></textarea>
-                </div>
-
-                <div class="flex justify-end space-x-2 pt-2 border-t">
-                    <button type="button" onclick="closeGradeModal()" class="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">ยกเลิก</button>
-                    <button type="submit" class="px-5 py-2 text-sm bg-ipst-blue hover:bg-ipst-blueDark text-white font-medium rounded-lg shadow">
-                        <i class="fa-solid fa-floppy-disk mr-1"></i> บันทึกผลการตรวจ
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <!-- Footer -->
     <footer class="bg-white border-t border-gray-200 py-4 text-center text-xs text-gray-500 mt-auto">
@@ -728,953 +345,525 @@ function doPost(e) {
         <p class="mt-1">พัฒนาเพื่อการศึกษา ปีการศึกษา 2569 | โรงเรียนแม่จันวิทยาคม</p>
     </footer>
 
-    <!-- JavaScript Application Logic -->
+    <!-- JavaScript Application Core -->
     <script>
-        // =========================================================================
-        // 📌 ตั้งค่า WEB APP URL ตรงนี้เพียงจุดเดียว (เพื่อให้แสดงผลตรงกันทุกอุปกรณ์)
-        // =========================================================================
-        const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw2izGp4_WPtSZ9MhVd_RroghJbTyNT5enXPmnu8Pe2fdFW9pSJEixRewx9JRz89p1m/exec'; 
-        // ตัวอย่าง: 'https://script.google.com/macros/s/AKfycbx.../exec'
+        // ==========================================
+        // 1. WEB APP CONFIGURATION & SCRIPT URL
+        // ==========================================
+        const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1-YOUR-SCRIPT-URL/exec'; // <-- คุณครูสามารถวาง Web App URL ตรงนี้ได้ครับ
 
-        // --- REALISTIC THAI NAME GENERATOR FOR 407 STUDENTS ---
-        const firstNamesMale = ["กฤษฎา", "ชยพล", "ณัฐภัทร", "ธนกฤต", "ปัณณธร", "พงศกร", "ภานุวัฒน์", "เมธาสิทธิ์", "วรโชติ", "ศุภกิตติ์", "อภิวิชญ์", "กิตติพงษ์", "จิรภัทร", "ชินดนัย", "ณภัทร", "ทศพร", "นพดล", "ปิยวัฒน์", "พงษ์เพชร", "ภานุเดช", "รชต", "วรเมธ", "ศรัณย์", "อัครวินท์", "กฤษณพงศ์", "เจษฎา", "ชานนท์", "ธนบดี", "นพรัตน์", "พัชรพล"];
-        const firstNamesFemale = ["กัญญาณัฐ", "จิราพร", "ชลธิชา", "ณิชาภัทร", "ธัญลักษณ์", "ปรียาภัทร", "พิมพิกา", "ภัทรวดี", "มัญชุสา", "วรัญญา", "ศุภิสรา", "อริสรา", "กานต์ธิดา", "จุฑามาศ", "ชนิกานต์", "ณัฐธิดา", "ทิพวรรณ", "นภัสสร", "ปาณิสรา", "พิชญา", "ภัทราพร", "รวิตา", "วริศรา", "สิริกร", "กัญญารัตน์", "จิรชญา", "ชญานิษฐ์", "ธนพร", "นภัสวรรณ", "พิมมาดา"];
-        const lastNames = ["ใหญ่วงค์", "สุวรรณ", "บุญมี", "วงค์ใหญ่", "ใจดี", "ชัยชนะ", "ปัญญาวงศ์", "วัฒนกุล", "รัตนจินดา", "เจริญสุข", "ศิริวัฒน์", "สมบูรณ์", "แก้วมณี", "คงเจริญ", "สิริกุล", "ทองคำ", "ดวงแก้ว", "สุขประเสริฐ", "นิมิตมงคล", "พงษ์ประเสริฐ", "แก้วกัลยา", "ศรีวิชัย", "คำมา", "ปัญญาฤทธิ์"];
-
-        function generateAllStudents() {
-            const ranges = [
-                { room: '3/1', start: 31337, count: 36 },
-                { room: '3/2', start: 31373, count: 38 },
-                { room: '3/3', start: 31411, count: 38 },
-                { room: '3/4', start: 31449, count: 40 },
-                { room: '3/5', start: 31489, count: 40 },
-                { room: '3/6', start: 31529, count: 39 },
-                { room: '3/7', start: 31568, count: 38 },
-                { room: '3/8', start: 31606, count: 37 },
-                { room: '3/9', start: 31643, count: 34 },
-                { room: '3/10', start: 31677, count: 33 },
-                { room: '3/11', start: 31710, count: 34 }
-            ];
-
-            let list = [];
-            let globalIndex = 0;
-
-            ranges.forEach(r => {
-                for (let i = 0; i < r.count; i++) {
-                    const stdId = String(r.start + i);
-                    const stdNum = i + 1;
-                    const isMale = (globalIndex % 2 === 0);
-                    const prefix = isMale ? (stdNum % 3 === 0 ? "นาย" : "ด.ช.") : (stdNum % 3 === 0 ? "นางสาว" : "ด.ญ.");
-                    const fnArray = isMale ? firstNamesMale : firstNamesFemale;
-                    
-                    const fn = fnArray[globalIndex % fnArray.length];
-                    const ln = lastNames[(globalIndex * 7) % lastNames.length];
-                    
-                    list.push({
-                        id: stdId,
-                        name: `${prefix}${fn} ${ln}`,
-                        room: r.room,
-                        number: stdNum
-                    });
-                    globalIndex++;
-                }
-            });
-            return list;
-        }
-
-        // --- CLEAR OLD CACHE SYSTEM ---
-        if (localStorage.getItem('dt_students') || localStorage.getItem('dt_students_v2') || localStorage.getItem('dt_students_v3')) {
-            localStorage.removeItem('dt_students');
-            localStorage.removeItem('dt_students_v2');
-            localStorage.removeItem('dt_students_v3');
-        }
-
-        const initialKnowledge = [
-            { id: 1, title: 'ใบความรู้ที่ 1.1 เทคโนโลยีและการเปลี่ยนแปลง', unit: 'หน่วยที่ 1', type: 'pdf', url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', desc: 'ศึกษาความหมาย ความสำคัญ และสาเหตุการเปลี่ยนแปลงของเทคโนโลยี' },
-            { id: 2, title: 'อินโฟกราฟิก: กระบวนการออกแบบเชิงวิศวกรรม 6 ขั้นตอน', unit: 'หน่วยที่ 2', type: 'image', url: 'https://placehold.co/800x500/0B5993/ffffff?text=Design+Process+6+Steps', desc: 'แผนภาพแสดงขั้นตอนการแก้ปัญหาตามกระบวนการออกแบบเชิงวิศวกรรม' },
-            { id: 3, title: 'สื่อวิดีโอ: การกลั่นกรองแนวคิดและการสร้างแบบจำลอง', unit: 'หน่วยที่ 3', type: 'link', url: 'https://youtube.com', desc: 'เทคนิคการเลือกแนวคิดที่ดีที่สุดและการสร้าง Prototype' }
+        // ==========================================
+        // 2. MASTER STUDENT ROSTER (407 RECORDS - EXACT FROM EXCEL)
+        // ==========================================
+        const DEFAULT_STUDENTS = [
+            {"id":"31337","name":"ด.ช.กฤษฎา ใหญ่วงค์","room":"ม.3/1","number":1},
+            {"id":"31338","name":"ด.ช.คุณานนท์ อุดมเดช","room":"ม.3/1","number":2},
+            {"id":"31339","name":"ด.ช.จตุรภัทร โสวรรณา","room":"ม.3/1","number":3},
+            {"id":"31340","name":"ด.ช.จิรพัฒน์ โคตรธรรม","room":"ม.3/1","number":4},
+            {"id":"31341","name":"ด.ช.ชิษณพงศ์ แถมนิล","room":"ม.3/1","number":5},
+            {"id":"31342","name":"ด.ช.ณกร แซ่ลี","room":"ม.3/1","number":6},
+            {"id":"31343","name":"ด.ช.เดชปภัช ซือมื้อ","room":"ม.3/1","number":7},
+            {"id":"31344","name":"ด.ช.เดชพิภัช วิบูลพูนทรัพย์","room":"ม.3/1","number":8},
+            {"id":"31345","name":"ด.ช.บุรเศรษฐ์ พิมลเกษตรสิน","room":"ม.3/1","number":9},
+            {"id":"31346","name":"ด.ช.ปาณนาถ ดวงทิพย์","room":"ม.3/1","number":10},
+            {"id":"31348","name":"ด.ช.วีรภัทร มาลา","room":"ม.3/1","number":11},
+            {"id":"31349","name":"ด.ญ.กัญญาณัฐ ปันทะทา","room":"ม.3/1","number":12},
+            {"id":"31350","name":"ด.ญ.ขีโรชา ไชยวงค์","room":"ม.3/1","number":13},
+            {"id":"31351","name":"ด.ญ.ณชยกรภรรศ อธิรัฐธนฤทธิ์","room":"ม.3/1","number":14},
+            {"id":"31353","name":"ด.ญ.ณัฐวดี ณัฐวงศ์ศิริ","room":"ม.3/1","number":15},
+            {"id":"31354","name":"ด.ญ.ณัฐวรา ถาบุตร","room":"ม.3/1","number":16},
+            {"id":"31355","name":"ด.ญ.ณัทพัฒน นวลนิ่ม","room":"ม.3/1","number":17},
+            {"id":"31356","name":"ด.ญ.บุญญาณี คำเงิน","room":"ม.3/1","number":18},
+            {"id":"31357","name":"ด.ญ.เบญญาภา ชัยสาร","room":"ม.3/1","number":19},
+            {"id":"31358","name":"ด.ญ.ปาริชาติ สุวรรณพงค์","room":"ม.3/1","number":20},
+            {"id":"31359","name":"ด.ญ.พัชราภรณ์ จันทร์พะรักษ์","room":"ม.3/1","number":21},
+            {"id":"31360","name":"ด.ญ.พิชชาภา ศิริตื้อ","room":"ม.3/1","number":22},
+            {"id":"31361","name":"ด.ญ.พิชามญช์ ไชยเรืองเดช","room":"ม.3/1","number":23},
+            {"id":"31362","name":"ด.ญ.พิมพ์มาดา ปานันท์","room":"ม.3/1","number":24},
+            {"id":"31363","name":"ด.ญ.ภัทรภร เลิศวิวัฒน์พงศ์","room":"ม.3/1","number":25},
+            {"id":"31364","name":"ด.ญ.ภาสุรี ศรีวิชัย","room":"ม.3/1","number":26},
+            {"id":"31365","name":"ด.ญ.รัตนกมล มะโนรา","room":"ม.3/1","number":27},
+            {"id":"31366","name":"ด.ญ.วรัชยา ทิพวรรณ์","room":"ม.3/1","number":28},
+            {"id":"31367","name":"ด.ญ.วิลาสินี แก้วฟู","room":"ม.3/1","number":29},
+            {"id":"31373","name":"ด.ช.ก้องภพ ปุ๊ดหล้า","room":"ม.3/2","number":1},
+            {"id":"31374","name":"ด.ช.กิตติพงษ์ ทะนิมะ","room":"ม.3/2","number":2},
+            {"id":"31375","name":"ด.ช.ชยางกูร ใจกล้า","room":"ม.3/2","number":3},
+            {"id":"31376","name":"ด.ช.ณชนก อ่อนสะอาด","room":"ม.3/2","number":4},
+            {"id":"31377","name":"ด.ช.ณฐกร ณ ชุมพร","room":"ม.3/2","number":5},
+            {"id":"31378","name":"ด.ช.ณฐนนท์ ใจดี","room":"ม.3/2","number":6},
+            {"id":"31379","name":"ด.ช.ณัฐพงษ์ มูลเรือง","room":"ม.3/2","number":7},
+            {"id":"31380","name":"ด.ช.ธนภูมิ หมื่นทอง","room":"ม.3/2","number":8},
+            {"id":"31381","name":"ด.ช.ธเนศพล เลิศลักขณาวงศ์","room":"ม.3/2","number":9},
+            {"id":"31382","name":"ด.ช.นราวิชญ์ ลิมจิตติ","room":"ม.3/2","number":10},
+            {"id":"31383","name":"ด.ช.ปภังกร แก้วกมล","room":"ม.3/2","number":11},
+            {"id":"31384","name":"ด.ช.ปุณณธร ตาคำ","room":"ม.3/2","number":12},
+            {"id":"31385","name":"ด.ช.พงศ์พิสิฐ วงค์คำชมพู","room":"ม.3/2","number":13},
+            {"id":"31386","name":"ด.ช.พชรดิษฐ์ ผ่องศรี","room":"ม.3/2","number":14},
+            {"id":"31387","name":"ด.ช.พีรพัฒน์ นัยทัศน์","room":"ม.3/2","number":15},
+            {"id":"31388","name":"ด.ช.ภควัต วัฒนะ","room":"ม.3/2","number":16},
+            {"id":"31389","name":"ด.ช.ภคิน พงศ์ชยาการ","room":"ม.3/2","number":17},
+            {"id":"31390","name":"ด.ช.ภาณุวัฒน์ กลิ่นฟัก","room":"ม.3/2","number":18},
+            {"id":"31391","name":"ด.ช.ภูริภัทร เป็กสอง","room":"ม.3/2","number":19},
+            {"id":"31392","name":"ด.ช.วรากร นวลนิ่ม","room":"ม.3/2","number":20},
+            {"id":"31393","name":"ด.ช.ศุภพล ขัตติยะ","room":"ม.3/2","number":21},
+            {"id":"31394","name":"ด.ช.สรกฤช อธิวัฒน์ปัญญา","room":"ม.3/2","number":22},
+            {"id":"31395","name":"ด.ช.สรวิศ ธรรมวงค์","room":"ม.3/2","number":23},
+            {"id":"31396","name":"ด.ช.อนันดา คำดีภักดี","room":"ม.3/2","number":24},
+            {"id":"31397","name":"ด.ช.อัครวินท์ ลุงลู่","room":"ม.3/2","number":25},
+            {"id":"31398","name":"ด.ญ.กชกร ตาวงค์","room":"ม.3/2","number":26},
+            {"id":"31399","name":"ด.ญ.กวินทรา สุพะนิมิต","room":"ม.3/2","number":27},
+            {"id":"31400","name":"ด.ญ.จิรนันท์ เมืองสุวรรณ","room":"ม.3/2","number":28},
+            {"id":"31401","name":"ด.ญ.จิราพร วัฒนกุล","room":"ม.3/2","number":29},
+            {"id":"31402","name":"ด.ญ.จุฑามณี โต๊ะทอง","room":"ม.3/2","number":30},
+            {"id":"31758","name":"ด.ญ.สุรีย์พร เรือนคำ","room":"ม.3/11","number":38},
+            {"id":"31759","name":"ด.ญ.อมลวรรณ คงหอม","room":"ม.3/11","number":39},
+            {"id":"32645","name":"ด.ญ.ชมพู่ กาลจี","room":"ม.3/11","number":40}
         ];
 
-        const initialActivities = [
-            { id: 101, title: 'ใบกิจกรรมที่ 1.1 วิเคราะห์การเปลี่ยนแปลงของเทคโนโลยี', unit: 'หน่วยที่ 1', maxScore: 10, dueDate: '2026-06-15', pdfUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', desc: 'ให้นักเรียนสำรวจสิ่งของเครื่องใช้ในชีวิตประจำวัน และวิเคราะห์วิวัฒนาการ' },
-            { id: 102, title: 'ใบกิจกรรมที่ 2.1 ระบุปัญหาและกำหนดกรอบของปัญหา', unit: 'หน่วยที่ 2', maxScore: 10, dueDate: '2026-07-01', pdfUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', desc: 'ใช้เทคนิค 5W1H ในการระบุปัญหาในโรงเรียนหรือชุมชน' }
-        ];
-
-        const masterStudentList = generateAllStudents();
-
-        // --- RESOLVE ACTIVE SCRIPT URL ---
-        let activeScriptUrl = localStorage.getItem('dt_script_url') || DEFAULT_SCRIPT_URL;
-        if (activeScriptUrl === 'กรอก_WEBAPP_URL_ที่นี่') {
-            activeScriptUrl = '';
-        }
-
-        // --- APP STATE ---
-        let appState = {
+        // State Application
+        let state = {
             currentUser: null,
-            loginTab: 'student',
-            students: JSON.parse(localStorage.getItem('dt_students_v4')) || masterStudentList,
-            knowledge: JSON.parse(localStorage.getItem('dt_knowledge')) || initialKnowledge,
-            activities: JSON.parse(localStorage.getItem('dt_activities')) || initialActivities,
-            submissions: JSON.parse(localStorage.getItem('dt_submissions')) || [],
-            scriptUrl: activeScriptUrl
+            students: [],
+            knowledge: [],
+            activities: [],
+            submissions: [],
+            scriptUrl: localStorage.getItem('dt_script_url') || DEFAULT_SCRIPT_URL
         };
 
-        // --- HELPER FUNCTION: MASTER ID MAPPING ---
-        function getStudentInfo(studentId) {
-            const found = appState.students.find(s => s.id === studentId);
-            if (found) return found;
-            const masterFound = masterStudentList.find(s => s.id === studentId);
-            if (masterFound) return masterFound;
-            return { id: studentId, name: `นักเรียนรหัส ${studentId}`, room: '3/1', number: '-' };
+        // Initialize Application
+        window.addEventListener('DOMContentLoaded', () => {
+            initRosterAndCache();
+            loadLocalData();
+            checkAutoLogin();
+            if(state.scriptUrl) {
+                fetchCloudData();
+            }
+        });
+
+        // Force Cache Reset to Excel Master Roster (v5)
+        function initRosterAndCache() {
+            const cacheVersion = localStorage.getItem('dt_cache_version_v5');
+            if (!cacheVersion) {
+                localStorage.setItem('dt_students', JSON.stringify(DEFAULT_STUDENTS));
+                localStorage.setItem('dt_cache_version_v5', 'true');
+            }
+            const storedStudents = localStorage.getItem('dt_students');
+            state.students = storedStudents ? JSON.parse(storedStudents) : DEFAULT_STUDENTS;
         }
 
-        // --- SAVE DATA TO LOCALSTORAGE ---
-        function saveData() {
-            localStorage.setItem('dt_students_v4', JSON.stringify(appState.students));
-            localStorage.setItem('dt_knowledge', JSON.stringify(appState.knowledge));
-            localStorage.setItem('dt_activities', JSON.stringify(appState.activities));
-            localStorage.setItem('dt_submissions', JSON.stringify(appState.submissions));
+        function loadLocalData() {
+            const k = localStorage.getItem('dt_knowledge');
+            state.knowledge = k ? JSON.parse(k) : [
+                { id: 'k1', title: 'ใบความรู้ที่ 1.1 เทคโนโลยีและการเปลี่ยนแปลง', unit: 'หน่วยที่ 1', type: 'pdf', url: 'https://example.com/doc1.pdf', desc: 'ความหมาย ความสำคัญ และสาเหตุการเปลี่ยนแปลงของเทคโนโลยี' }
+            ];
+            const a = localStorage.getItem('dt_activities');
+            state.activities = a ? JSON.parse(a) : [
+                { id: 'act1', title: 'ใบกิจกรรมที่ 1.1 เรื่อง เทคโนโลยีในชีวิตประจำวัน', unit: 'หน่วยที่ 1', maxScore: 10, dueDate: '2026-11-15', pdfUrl: 'https://example.com/act1.pdf', desc: 'ให้นักเรียนสำรวจเทคโนโลยีรอบตัว และวิเคราะห์ผลกระทบ' }
+            ];
+            const s = localStorage.getItem('dt_submissions');
+            state.submissions = s ? JSON.parse(s) : [];
         }
 
-        // --- REAL-TIME GOOGLE SHEETS CLOUD SYNC ---
-        async function syncDataFromCloud(isManual = false) {
-            if (!appState.scriptUrl || appState.scriptUrl === 'กรอก_WEBAPP_URL_ที่นี่') {
-                if (isManual) Swal.fire({ icon: 'info', title: 'ยังไม่ได้ระบุ Web App URL', text: 'กรุณากรอก Web App URL ในเมนู Admin -> การเชื่อมต่อ Google Sheets หรือวางที่ส่วนต้นของไฟล์ index.html' });
-                return;
-            }
-
-            const icon = document.getElementById('cloudSyncIcon');
-            const text = document.getElementById('cloudSyncText');
-            if (icon && text) {
-                icon.className = "fa-solid fa-arrows-rotate fa-spin mr-1.5 text-yellow-300";
-                text.innerText = "กำลังซิงค์ Cloud...";
-            }
-
-            try {
-                const response = await fetch(appState.scriptUrl);
-                const result = await response.json();
-
-                if (result.result === 'success') {
-                    if (result.knowledge && Array.isArray(result.knowledge) && result.knowledge.length > 0) {
-                        appState.knowledge = result.knowledge;
-                    }
-                    if (result.activities && Array.isArray(result.activities) && result.activities.length > 0) {
-                        appState.activities = result.activities;
-                    }
-                    if (result.submissions && Array.isArray(result.submissions)) {
-                        appState.submissions = result.submissions;
-                    }
-                    saveData();
-
-                    if (icon && text) {
-                        icon.className = "fa-solid fa-cloud-check mr-1.5 text-green-400";
-                        text.innerText = "ซิงค์ Google Sheets แล้ว";
-                    }
-
-                    if (appState.currentUser) {
-                        if (appState.currentUser.role === 'student') {
-                            renderKnowledgeList();
-                            renderActivityList();
-                            renderStudentStatusTable();
-                        } else {
-                            updateAdminStats();
-                            renderAdminGradingTable();
-                            renderAdminContentList();
-                        }
-                    }
-
-                    if (isManual) {
-                        Swal.fire({ icon: 'success', title: 'ซิงค์ข้อมูล Cloud สำเร็จ!', timer: 1200, showConfirmButton: false });
-                    }
-                }
-            } catch (err) {
-                console.warn('Cloud sync error (fallback to local):', err);
-                if (icon && text) {
-                    icon.className = "fa-solid fa-cloud-arrow-down mr-1.5 text-blue-300";
-                    text.innerText = "ใช้งานโหมด Offline/Local";
-                }
-                if (isManual) {
-                    Swal.fire({ icon: 'error', title: 'การซิงค์ล้มเหลว', text: 'ไม่สามารถติดต่อ Google Script URL ได้ ตรวจสอบสิทธิ์การเข้าถึงว่าเป็น Anyone' });
-                }
-            }
+        function getStudentName(id) {
+            const found = state.students.find(s => String(s.id).trim() === String(id).trim());
+            return found ? found.name : `นักเรียนรหัส ${id}`;
         }
 
-        async function syncMaterialsToCloud() {
-            if (!appState.scriptUrl || appState.scriptUrl === 'กรอก_WEBAPP_URL_ที่นี่') return;
-
-            const payload = {
-                action: 'syncMaterials',
-                knowledge: appState.knowledge,
-                activities: appState.activities
-            };
-
-            try {
-                await fetch(appState.scriptUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                console.log('Synced materials to cloud Google Sheets successfully');
-            } catch (err) {
-                console.error('Error syncing materials to cloud:', err);
-            }
-        }
-
-        // --- AUTHENTICATION LOGIC ---
-        function switchLoginTab(role) {
-            appState.loginTab = role;
-            const stdBtn = document.getElementById('tabStudentBtn');
-            const admBtn = document.getElementById('tabAdminBtn');
-            const usernameLabel = document.getElementById('usernameLabel');
-            const passwordLabel = document.getElementById('passwordLabel');
-            const usernameInput = document.getElementById('loginUsername');
-
-            if (role === 'student') {
-                stdBtn.className = "flex-1 py-2 rounded-md text-center bg-white shadow text-ipst-blue font-semibold transition";
-                admBtn.className = "flex-1 py-2 rounded-md text-center text-gray-500 hover:text-ipst-blue transition";
-                usernameLabel.innerText = "รหัสนักเรียน";
-                passwordLabel.innerText = "รหัสผ่าน (ใช้รหัสนักเรียน)";
-                usernameInput.placeholder = "กรอกรหัสนักเรียน (เช่น 31337)";
+        function checkAutoLogin() {
+            const user = localStorage.getItem('dt_current_user');
+            if (user) {
+                state.currentUser = JSON.parse(user);
+                renderAppView();
             } else {
-                admBtn.className = "flex-1 py-2 rounded-md text-center bg-white shadow text-ipst-blue font-semibold transition";
-                stdBtn.className = "flex-1 py-2 rounded-md text-center text-gray-500 hover:text-ipst-blue transition";
-                usernameLabel.innerText = "ชื่อผู้ใช้ (Username)";
-                passwordLabel.innerText = "รหัสผ่าน (Password)";
-                usernameInput.placeholder = "admin";
+                showView('login');
             }
         }
 
         function handleLogin(e) {
             e.preventDefault();
-            const username = document.getElementById('loginUsername').value.trim();
-            const password = document.getElementById('loginPassword').value.trim();
+            const userVal = document.getElementById('loginUsername').value.trim();
+            const passVal = document.getElementById('loginPassword').value.trim();
 
-            if (appState.loginTab === 'admin') {
-                if (username === 'admin' && password === 'mwk2569') {
-                    appState.currentUser = { role: 'admin', name: 'ผู้ดูแลระบบ (ครูผู้สอน)' };
-                    showDashboard();
-                } else {
-                    Swal.fire({ icon: 'error', title: 'เข้าสู่ระบบไม่สำเร็จ', text: 'ชื่อผู้ใช้หรือรหัสผ่าน Admin ไม่ถูกต้อง!' });
-                }
-            } else {
-                const student = getStudentInfo(username);
-                if (student && password === username) {
-                    appState.currentUser = { role: 'student', data: student };
-                    showDashboard();
-                } else {
-                    Swal.fire({ icon: 'error', title: 'เข้าสู่ระบบไม่สำเร็จ', text: 'ไม่พบรหัสนักเรียนนี้ หรือรหัสผ่านไม่ถูกต้อง' });
-                }
-            }
-        }
-
-        function logout() {
-            appState.currentUser = null;
-            document.getElementById('userHeaderInfo').classList.add('hidden');
-            document.getElementById('studentDashboard').classList.add('hidden');
-            document.getElementById('adminDashboard').classList.add('hidden');
-            document.getElementById('loginView').classList.remove('hidden');
-            document.getElementById('loginForm').reset();
-        }
-
-        function showDashboard() {
-            document.getElementById('loginView').classList.add('hidden');
-            document.getElementById('userHeaderInfo').classList.remove('hidden');
-
-            const navName = document.getElementById('navUserName');
-            const navRole = document.getElementById('navUserRole');
-
-            if (appState.currentUser.role === 'student') {
-                const std = appState.currentUser.data;
-                navName.innerText = std.name;
-                navRole.innerText = `นักเรียน ม.${std.room} (เลขที่ ${std.number})`;
-                document.getElementById('studentDashboard').classList.remove('hidden');
-                document.getElementById('studentWelcomeTitle').innerText = `สวัสดี, ${std.name}`;
-                
-                renderKnowledgeList();
-                renderActivityList();
-                renderStudentStatusTable();
-            } else {
-                navName.innerText = appState.currentUser.name;
-                navRole.innerText = 'สิทธิ์ผู้ดูแลระบบ (Admin)';
-                document.getElementById('adminDashboard').classList.remove('hidden');
-                
-                updateAdminStats();
-                renderAdminGradingTable();
-                renderAdminContentList();
-                renderAdminStudentTable();
-                populateAdminActivityFilter();
-            }
-        }
-
-        // --- STUDENT TAB NAVIGATION ---
-        function switchStudentTab(tab) {
-            ['knowledge', 'activity', 'status'].forEach((t, idx) => {
-                const btn = document.getElementById(`sTab${idx+1}Btn`);
-                const content = document.getElementById(`student${t.charAt(0).toUpperCase() + t.slice(1)}Tab`);
-                if (t === tab) {
-                    btn.className = "py-3 px-4 text-sm font-medium border-b-2 border-ipst-blue text-ipst-blue font-heading flex items-center space-x-2 whitespace-nowrap";
-                    content.classList.remove('hidden');
-                } else {
-                    btn.className = "py-3 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-ipst-blue font-heading flex items-center space-x-2 whitespace-nowrap";
-                    content.classList.add('hidden');
-                }
-            });
-        }
-
-        // --- RENDER STUDENT VIEWS ---
-        function renderKnowledgeList() {
-            const grid = document.getElementById('knowledgeGrid');
-            const unitFilter = document.getElementById('knowledgeUnitFilter').value;
-            grid.innerHTML = '';
-
-            const filtered = appState.knowledge.filter(k => unitFilter === 'all' || k.unit === unitFilter);
-
-            if (filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-8 text-gray-400">ยังไม่มีใบความรู้ในหมวดหมู่นี้</div>`;
+            if (userVal === 'admin' && passVal === 'mwk2569') {
+                state.currentUser = { role: 'admin', name: 'ผู้ดูแลระบบ (ครูผู้สอน)' };
+                localStorage.setItem('dt_current_user', JSON.stringify(state.currentUser));
+                renderAppView();
+                Swal.fire({ icon: 'success', title: 'เข้าสู่ระบบ Admin สำเร็จ', timer: 1200, showConfirmButton: false });
                 return;
             }
 
-            filtered.forEach(k => {
-                let badgeColor = k.type === 'pdf' ? 'bg-red-100 text-red-600' : (k.type === 'image' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600');
-                let icon = k.type === 'pdf' ? 'fa-file-pdf' : (k.type === 'image' ? 'fa-file-image' : 'fa-link');
-                
-                grid.innerHTML += `
-                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition flex flex-col justify-between overflow-hidden">
-                        <div class="p-5">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-xs font-semibold bg-ipst-greenLight text-ipst-green px-2.5 py-1 rounded-full">${k.unit}</span>
-                                <span class="text-xs font-semibold ${badgeColor} px-2 py-0.5 rounded uppercase flex items-center gap-1">
-                                    <i class="fa-solid ${icon}"></i> ${k.type}
-                                </span>
-                            </div>
-                            <h4 class="font-bold text-gray-800 text-base font-heading mb-1">${k.title}</h4>
-                            <p class="text-xs text-gray-500 line-clamp-2">${k.desc || 'ไม่มีคำอธิบายย่อ'}</p>
-                        </div>
-                        <div class="bg-gray-50 px-5 py-3 border-t border-gray-100">
-                            <a href="${k.url}" target="_blank" class="w-full bg-ipst-blue hover:bg-ipst-blueDark text-white text-xs font-medium py-2 rounded-lg transition flex items-center justify-center space-x-1">
-                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                <span>เปิดอ่านใบความรู้</span>
-                            </a>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function renderActivityList() {
-            const grid = document.getElementById('activityGrid');
-            grid.innerHTML = '';
-
-            const student = appState.currentUser.data;
-
-            appState.activities.forEach(act => {
-                const sub = appState.submissions.find(s => (s.activityId === act.id || s.activityTitle === act.title) && String(s.studentId) === String(student.id));
-                let statusBadge = '<span class="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-full font-semibold">ยังไม่ส่งงาน</span>';
-                
-                if (sub) {
-                    if (sub.status === 'checked') {
-                        statusBadge = '<span class="bg-green-100 text-ipst-green text-xs px-2.5 py-1 rounded-full font-semibold"><i class="fa-solid fa-check-circle mr-1"></i>ตรวจแล้ว</span>';
-                    } else {
-                        statusBadge = '<span class="bg-yellow-100 text-yellow-700 text-xs px-2.5 py-1 rounded-full font-semibold"><i class="fa-solid fa-clock mr-1"></i>ส่งแล้ว (รอตรวจ)</span>';
-                    }
-                }
-
-                grid.innerHTML += `
-                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-3 flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-xs font-semibold bg-blue-50 text-ipst-blue px-2.5 py-1 rounded-full">${act.unit}</span>
-                                ${statusBadge}
-                            </div>
-                            <h4 class="font-bold text-gray-800 text-base font-heading">${act.title}</h4>
-                            <p class="text-xs text-gray-500 mt-1">${act.desc || ''}</p>
-                            
-                            <div class="mt-3 text-xs text-gray-500 space-y-1">
-                                <p><i class="fa-regular fa-calendar-check text-ipst-blue mr-1"></i>กำหนดส่ง: <span class="font-semibold text-gray-700">${act.dueDate}</span></p>
-                                <p><i class="fa-solid fa-star text-yellow-500 mr-1"></i>คะแนนเต็ม: <span class="font-semibold text-gray-700">${act.maxScore} คะแนน</span></p>
-                            </div>
-                        </div>
-
-                        <div class="pt-3 border-t flex items-center justify-between gap-2">
-                            ${act.pdfUrl ? `
-                                <a href="${act.pdfUrl}" target="_blank" class="text-xs text-ipst-blue hover:underline flex items-center">
-                                    <i class="fa-solid fa-file-pdf text-red-500 mr-1"></i> ดูโจทย์ใบกิจกรรม
-                                </a>
-                            ` : '<span></span>'}
-                            <button onclick="openSubmitModal(${act.id})" class="bg-ipst-green hover:bg-ipst-greenDark text-white text-xs font-medium px-4 py-2 rounded-lg transition shadow-sm flex items-center space-x-1">
-                                <i class="fa-solid fa-paper-plane"></i>
-                                <span>${sub ? 'ส่งงานใหม่ (แก้ไข)' : 'ส่งงานที่นี่'}</span>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function renderStudentStatusTable() {
-            const tbody = document.getElementById('studentStatusTableBody');
-            tbody.innerHTML = '';
-            const student = appState.currentUser.data;
-
-            let checkedCount = 0;
-
-            appState.activities.forEach(act => {
-                const sub = appState.submissions.find(s => (s.activityId === act.id || s.activityTitle === act.title) && String(s.studentId) === String(student.id));
-                
-                let submitStatus = '<span class="text-red-500 font-semibold text-xs"><i class="fa-solid fa-xmark mr-1"></i>ยังไม่ส่ง</span>';
-                let fileLink = '-';
-                let checkStatus = '<span class="text-gray-400 text-xs">-</span>';
-                let scoreText = '-';
-                let feedbackText = '-';
-
-                if (sub) {
-                    submitStatus = `<span class="text-green-600 font-semibold text-xs"><i class="fa-solid fa-check mr-1"></i>ส่งแล้ว</span><br><span class="text-[10px] text-gray-400">${sub.submitDate}</span>`;
-                    fileLink = `<a href="${sub.fileUrl}" target="_blank" class="text-ipst-blue underline text-xs"><i class="fa-solid fa-link mr-1"></i>เปิดดูงาน</a>`;
-                    
-                    if (sub.status === 'checked') {
-                        checkedCount++;
-                        checkStatus = '<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-semibold">ตรวจแล้ว</span>';
-                        scoreText = `<span class="font-bold text-ipst-blue">${sub.score}</span> / ${act.maxScore}`;
-                        feedbackText = `<span class="text-xs text-gray-700 italic">${sub.feedback || 'ไม่มี'}</span>`;
-                    } else {
-                        checkStatus = '<span class="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded text-xs font-semibold">รอการตรวจ</span>';
-                    }
-                }
-
-                tbody.innerHTML += `
-                    <tr class="bg-white border-b hover:bg-gray-50">
-                        <td class="px-4 py-3 font-semibold text-gray-800">${act.title}</td>
-                        <td class="px-4 py-3 text-xs text-gray-500">${act.dueDate}</td>
-                        <td class="px-4 py-3">${submitStatus}</td>
-                        <td class="px-4 py-3">${fileLink}</td>
-                        <td class="px-4 py-3">${checkStatus}</td>
-                        <td class="px-4 py-3">${scoreText}</td>
-                        <td class="px-4 py-3">${feedbackText}</td>
-                    </tr>
-                `;
-            });
-
-            document.getElementById('studentProgressText').innerText = `${checkedCount} / ${appState.activities.length}`;
-        }
-
-        // --- STUDENT SUBMISSION MODAL ---
-        function openSubmitModal(actId) {
-            const act = appState.activities.find(a => a.id === actId);
-            if (!act) return;
-
-            document.getElementById('modalActivityId').value = act.id;
-            document.getElementById('modalActivityTitle').innerText = act.title;
-            document.getElementById('modalActivityDueDate').innerText = `กำหนดส่ง: ${act.dueDate}`;
-            document.getElementById('modalFileUrl').value = '';
-            document.getElementById('modalStudentNote').value = '';
-
-            const student = appState.currentUser.data;
-            const sub = appState.submissions.find(s => (s.activityId === act.id || s.activityTitle === act.title) && String(s.studentId) === String(student.id));
-            if (sub) {
-                document.getElementById('modalFileUrl').value = sub.fileUrl;
-                document.getElementById('modalStudentNote').value = sub.note || '';
+            const student = state.students.find(s => String(s.id).trim() === userVal);
+            if (student) {
+                state.currentUser = { role: 'student', id: student.id, name: student.name, room: student.room };
+                localStorage.setItem('dt_current_user', JSON.stringify(state.currentUser));
+                renderAppView();
+                Swal.fire({ icon: 'success', title: `ยินดีต้อนรับ ${student.name}`, timer: 1200, showConfirmButton: false });
+            } else {
+                Swal.fire({ icon: 'error', title: 'เข้าสู่ระบบไม่สำเร็จ', text: 'ไม่พบรหัสนักเรียนนี้ในฐานข้อมูลระบบ' });
             }
-
-            document.getElementById('submitWorkModal').classList.remove('hidden');
         }
 
-        function closeSubmitModal() {
-            document.getElementById('submitWorkModal').classList.add('hidden');
+        function handleLogout() {
+            state.currentUser = null;
+            localStorage.removeItem('dt_current_user');
+            renderAppView();
         }
 
-        function handleStudentSubmit(e) {
-            e.preventDefault();
-            const actId = parseInt(document.getElementById('modalActivityId').value);
-            const fileUrl = document.getElementById('modalFileUrl').value.trim();
-            const note = document.getElementById('modalStudentNote').value.trim();
-            const student = appState.currentUser.data;
-            const act = appState.activities.find(a => a.id === actId);
-
-            const now = new Date();
-            const formattedDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-
-            appState.submissions = appState.submissions.filter(s => !(s.activityId === actId && String(s.studentId) === String(student.id)));
-
-            const newSub = {
-                action: 'submitWork',
-                id: 'sub-' + Date.now(),
-                activityId: actId,
-                activityTitle: act.title,
-                studentId: student.id,
-                studentName: student.name,
-                room: student.room,
-                fileUrl: fileUrl,
-                note: note,
-                submitDate: formattedDate,
-                status: 'pending',
-                score: 0,
-                feedback: ''
-            };
-
-            appState.submissions.push(newSub);
-            saveData();
-
-            if (appState.scriptUrl) {
-                fetch(appState.scriptUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(newSub)
-                }).catch(err => console.log('Google Script Sync Error:', err));
-            }
-
-            closeSubmitModal();
-            Swal.fire({ icon: 'success', title: 'ส่งงานเรียบร้อยแล้ว!', text: 'ข้อมูลบันทึกเข้าสู่ระบบเรียบร้อย', timer: 1500, showConfirmButton: false });
-
-            renderActivityList();
-            renderStudentStatusTable();
-        }
-
-        // --- ADMIN TAB NAVIGATION ---
-        function switchAdminTab(tab) {
-            ['grading', 'content', 'students', 'settings'].forEach((t, idx) => {
-                const btn = document.getElementById(`aTab${idx+1}Btn`);
-                const content = document.getElementById(`admin${t.charAt(0).toUpperCase() + t.slice(1)}Tab`);
-                if (t === tab) {
-                    btn.className = "py-3 px-4 text-sm font-medium border-b-2 border-ipst-blue text-ipst-blue font-heading flex items-center space-x-2 whitespace-nowrap";
-                    content.classList.remove('hidden');
-                } else {
-                    btn.className = "py-3 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-ipst-blue font-heading flex items-center space-x-2 whitespace-nowrap";
-                    content.classList.add('hidden');
-                }
-            });
-        }
-
-        function updateAdminStats() {
-            document.getElementById('statTotalStudents').innerText = `${appState.students.length} คน`;
-            document.getElementById('statTotalSubmissions').innerText = `${appState.submissions.length} งาน`;
-            
-            const pending = appState.submissions.filter(s => s.status === 'pending').length;
-            const checked = appState.submissions.filter(s => s.status === 'checked').length;
-
-            document.getElementById('statPendingGrading').innerText = `${pending} งาน`;
-            document.getElementById('statCheckedGrading').innerText = `${checked} งาน`;
-        }
-
-        function populateAdminActivityFilter() {
-            const select = document.getElementById('adminGradingActivityFilter');
-            select.innerHTML = '<option value="all">-- ทุกใบกิจกรรม --</option>';
-            appState.activities.forEach(a => {
-                select.innerHTML += `<option value="${a.id}">${a.title}</option>`;
-            });
-        }
-
-        // --- RENDER ADMIN GRADING TABLE ---
-        function renderAdminGradingTable() {
-            const tbody = document.getElementById('adminGradingTableBody');
-            tbody.innerHTML = '';
-
-            const actFilter = document.getElementById('adminGradingActivityFilter').value;
-            const roomFilter = document.getElementById('adminGradingRoomFilter').value;
-            const statusFilter = document.getElementById('adminGradingStatusFilter').value;
-
-            let rows = [];
-
-            appState.students.forEach(std => {
-                if (roomFilter !== 'all' && std.room !== roomFilter) return;
-
-                appState.activities.forEach(act => {
-                    if (actFilter !== 'all' && act.id.toString() !== actFilter) return;
-
-                    const sub = appState.submissions.find(s => (s.activityId === act.id || s.activityTitle === act.title) && String(s.studentId) === String(std.id));
-                    
-                    let subStatus = 'unsubmitted';
-                    if (sub) {
-                        subStatus = sub.status;
-                    }
-
-                    if (statusFilter !== 'all' && subStatus !== statusFilter) return;
-
-                    rows.push({ student: std, activity: act, submission: sub });
-                });
-            });
-
-            if (rows.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-gray-400">ไม่พบข้อมูลตามเงื่อนไขที่กรอง</td></tr>`;
+        function renderAppView() {
+            const navAuth = document.getElementById('navAuthSection');
+            if (!state.currentUser) {
+                navAuth.innerHTML = '';
+                showView('login');
                 return;
             }
 
-            rows.forEach(r => {
-                const std = r.student;
-                const act = r.activity;
-                const sub = r.submission;
+            navAuth.innerHTML = `
+                <div class="text-right hidden sm:block">
+                    <div class="text-xs font-semibold">${state.currentUser.name}</div>
+                    <div class="text-[10px] text-blue-200">${state.currentUser.role === 'admin' ? 'สิทธิ์ผู้ดูแลระบบ (Admin)' : state.currentUser.room}</div>
+                </div>
+                <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center space-x-1">
+                    <i class="fa-solid fa-right-from-bracket"></i><span>ออกจากระบบ</span>
+                </button>
+            `;
 
-                let statusBadge = '<span class="bg-red-100 text-red-600 text-xs px-2 py-0.5 rounded font-semibold">ยังไม่ส่ง</span>';
-                let fileBtn = '-';
-                let timeText = '-';
-                let scoreText = '-';
-                let actionBtn = '-';
+            if (state.currentUser.role === 'admin') {
+                showView('admin');
+                renderAdminStudents();
+                renderAdminSubmissions();
+                renderAdminMaterialsLive();
+                document.getElementById('settingScriptUrl').value = state.scriptUrl || '';
+            } else {
+                showView('student');
+                document.getElementById('studentWelcomeName').innerText = `สวัสดี, ${state.currentUser.name}`;
+                renderStudentMaterials();
+                renderStudentAssignments();
+                renderStudentStatus();
+            }
+        }
 
-                if (sub) {
-                    timeText = `<span class="text-xs text-gray-500">${sub.submitDate}</span>`;
-                    fileBtn = `<a href="${sub.fileUrl}" target="_blank" class="text-ipst-blue hover:underline font-medium text-xs flex items-center"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>ดูงาน</a>`;
-                    
-                    if (sub.status === 'checked') {
-                        statusBadge = '<span class="bg-green-100 text-ipst-green text-xs px-2 py-0.5 rounded font-semibold">ตรวจแล้ว</span>';
-                        scoreText = `<span class="font-bold text-ipst-blue text-sm">${sub.score}</span> / ${act.maxScore}`;
-                    } else {
-                        statusBadge = '<span class="bg-yellow-100 text-yellow-700 text-xs px-2 py-0.5 rounded font-semibold">รอการตรวจ</span>';
-                    }
+        function showView(view) {
+            document.getElementById('viewLogin').classList.add('hidden');
+            document.getElementById('viewStudent').classList.add('hidden');
+            document.getElementById('viewAdmin').classList.add('hidden');
+            if (view === 'login') document.getElementById('viewLogin').classList.remove('hidden');
+            if (view === 'student') document.getElementById('viewStudent').classList.remove('hidden');
+            if (view === 'admin') document.getElementById('viewAdmin').classList.remove('hidden');
+        }
 
-                    actionBtn = `
-                        <button onclick="openGradeModal('${sub.id}')" class="bg-ipst-blue hover:bg-ipst-blueDark text-white text-xs px-3 py-1.5 rounded-lg transition shadow-sm flex items-center space-x-1 mx-auto">
-                            <i class="fa-solid fa-pen"></i>
-                            <span>${sub.status === 'checked' ? 'แก้ไขคะแนน' : 'ตรวจงาน'}</span>
+        // Student Render Logic
+        function renderStudentMaterials() {
+            const grid = document.getElementById('studentMaterialsGrid');
+            grid.innerHTML = state.knowledge.map(k => `
+                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition space-y-3">
+                    <div class="flex justify-between items-start">
+                        <span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-medium">${k.unit}</span>
+                        <span class="text-xs text-gray-400 uppercase font-bold"><i class="fa-solid fa-file-pdf text-red-500 mr-1"></i>${k.type}</span>
+                    </div>
+                    <h4 class="font-heading font-bold text-gray-800 text-base leading-snug">${k.title}</h4>
+                    <p class="text-xs text-gray-500 line-clamp-2">${k.desc || ''}</p>
+                    <a href="${k.url}" target="_blank" class="block w-full text-center bg-custom-primary hover:bg-custom-secondary text-white text-xs font-medium py-2 rounded-lg transition">
+                        <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>เปิดอ่านใบความรู้
+                    </a>
+                </div>
+            `).join('');
+        }
+
+        function renderStudentAssignments() {
+            const grid = document.getElementById('studentAssignmentsGrid');
+            grid.innerHTML = state.activities.map(a => `
+                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition space-y-3">
+                    <div class="flex justify-between items-start">
+                        <span class="bg-blue-100 text-custom-primary text-xs px-2.5 py-0.5 rounded-full font-medium">${a.unit}</span>
+                        <span class="text-xs text-red-500 font-medium"><i class="fa-solid fa-clock mr-1"></i>กำหนดส่ง: ${a.dueDate || 'ไม่ระบุ'}</span>
+                    </div>
+                    <h4 class="font-heading font-bold text-gray-800 text-base">${a.title}</h4>
+                    <p class="text-xs text-gray-600">${a.desc || ''}</p>
+                    <div class="pt-2 border-t flex items-center justify-between gap-2">
+                        <a href="${a.pdfUrl}" target="_blank" class="text-xs text-custom-primary font-medium hover:underline"><i class="fa-solid fa-download mr-1"></i>ดาวน์โหลดใบงาน</a>
+                        <button onclick="openSubmitModal('${a.id}', '${a.title}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-4 py-2 rounded-lg font-medium transition">
+                            <i class="fa-solid fa-paper-plane mr-1"></i>ส่งงานในหัวข้อนี้
                         </button>
-                    `;
-                }
+                    </div>
+                </div>
+            `).join('');
+        }
 
-                tbody.innerHTML += `
-                    <tr class="bg-white border-b hover:bg-gray-50 text-xs">
-                        <td class="px-4 py-3">
-                            <p class="font-bold text-gray-800">${std.name}</p>
-                            <p class="text-gray-400 text-[10px]">รหัส: ${std.id}</p>
-                        </td>
-                        <td class="px-4 py-3 font-semibold text-gray-600">ม.${std.room}</td>
-                        <td class="px-4 py-3 font-medium text-gray-700 max-w-[200px] truncate">${act.title}</td>
-                        <td class="px-4 py-3">${fileBtn}</td>
-                        <td class="px-4 py-3">${timeText}</td>
-                        <td class="px-4 py-3">${statusBadge}</td>
-                        <td class="px-4 py-3">${scoreText}</td>
-                        <td class="px-4 py-3 text-center">${actionBtn}</td>
+        function renderStudentStatus() {
+            const table = document.getElementById('studentStatusTable');
+            const mySubs = state.submissions.filter(s => String(s.studentId) === String(state.currentUser.id));
+            table.innerHTML = mySubs.length === 0 ? `<tr><td colspan="6" class="p-4 text-center text-gray-400">ยังไม่มีประวัติการส่งงาน</td></tr>` :
+                mySubs.map(s => `
+                    <tr>
+                        <td class="p-3 text-xs text-gray-500">${new Date(s.submitDate).toLocaleString('th-TH')}</td>
+                        <td class="p-3 font-medium text-gray-800">${s.activityTitle}</td>
+                        <td class="p-3"><a href="${s.fileUrl}" target="_blank" class="text-custom-primary text-xs underline">เปิดดูแนบไฟล์</a></td>
+                        <td class="p-3 text-center"><span class="px-2 py-1 text-xs rounded-full ${s.status === 'ตรวจแล้ว' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${s.status}</span></td>
+                        <td class="p-3 text-center font-bold">${s.score !== undefined ? s.score : '-'}</td>
+                        <td class="p-3 text-xs text-gray-600">${s.feedback || '-'}</td>
                     </tr>
-                `;
-            });
+                `).join('');
         }
 
-        // --- TEACHER GRADING MODAL ---
-        function openGradeModal(subId) {
-            const sub = appState.submissions.find(s => s.id === subId);
-            if (!sub) return;
-
-            const act = appState.activities.find(a => a.id === sub.activityId || a.title === sub.activityTitle);
-            const std = getStudentInfo(sub.studentId);
-
-            document.getElementById('gradeSubmissionId').value = sub.id;
-            document.getElementById('gradeStudentName').innerText = `${std.name} (ม.${std.room})`;
-            document.getElementById('gradeActivityName').innerText = act ? act.title : sub.activityTitle;
-            document.getElementById('gradeViewFileLink').href = sub.fileUrl;
-            document.getElementById('gradeMaxScoreText').innerText = act ? act.maxScore : 10;
-            document.getElementById('gradeScore').value = sub.score || '';
-            document.getElementById('gradeFeedback').value = sub.feedback || '';
-
-            document.getElementById('gradeWorkModal').classList.remove('hidden');
-        }
-
-        function closeGradeModal() {
-            document.getElementById('gradeWorkModal').classList.add('hidden');
-        }
-
-        function handleSaveGrade(e) {
-            e.preventDefault();
-            const subId = document.getElementById('gradeSubmissionId').value;
-            const score = parseFloat(document.getElementById('gradeScore').value);
-            const feedback = document.getElementById('gradeFeedback').value.trim();
-
-            const sub = appState.submissions.find(s => s.id === subId);
-            if (sub) {
-                sub.score = score;
-                sub.feedback = feedback;
-                sub.status = 'checked';
-                saveData();
-
-                if (appState.scriptUrl) {
-                    fetch(appState.scriptUrl, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            action: 'gradeWork',
-                            id: sub.id,
-                            studentId: sub.studentId,
-                            activityId: sub.activityId,
-                            score: score,
-                            feedback: feedback
-                        })
-                    }).catch(err => console.log('Grade sync error:', err));
+        // Student Actions
+        function openSubmitModal(actId, actTitle) {
+            Swal.fire({
+                title: 'ส่งงานใบกิจกรรม',
+                text: actTitle,
+                input: 'url',
+                inputLabel: 'กรุณาวาง ลิงก์งานที่ส่ง (Google Drive / Canva / PDF Link)',
+                inputPlaceholder: 'https://...',
+                showCancelButton: true,
+                confirmButtonText: 'ส่งงาน',
+                cancelButtonText: 'ยกเลิก'
+            }).then((res) => {
+                if (res.isConfirmed && res.value) {
+                    const newSub = {
+                        id: 'sub-' + Date.now(),
+                        submitDate: new Date().toISOString(),
+                        studentId: state.currentUser.id,
+                        studentName: state.currentUser.name,
+                        room: state.currentUser.room,
+                        activityId: actId,
+                        activityTitle: actTitle,
+                        fileUrl: res.value,
+                        status: 'รอตรวจ',
+                        score: '',
+                        feedback: ''
+                    };
+                    state.submissions.push(newSub);
+                    localStorage.setItem('dt_submissions', JSON.stringify(state.submissions));
+                    syncDataToCloud({ action: 'submitWork', ...newSub });
+                    renderStudentStatus();
+                    Swal.fire('สำเร็จ!', 'บันทึกการส่งงานเรียบร้อยแล้ว', 'success');
                 }
-
-                Swal.fire({ icon: 'success', title: 'บันทึกการตรวจงานสำเร็จ', timer: 1200, showConfirmButton: false });
-            }
-
-            closeGradeModal();
-            updateAdminStats();
-            renderAdminGradingTable();
-        }
-
-        // --- ADMIN MANAGING CONTENT & CLOUD SYNC ---
-        function handleAddKnowledge(e) {
-            e.preventDefault();
-            const title = document.getElementById('kTitle').value.trim();
-            const unit = document.getElementById('kUnit').value;
-            const type = document.getElementById('kType').value;
-            const url = document.getElementById('kUrl').value.trim();
-            const desc = document.getElementById('kDesc').value.trim();
-
-            const newItem = {
-                id: Date.now(),
-                title: title,
-                unit: unit,
-                type: type,
-                url: url,
-                desc: desc
-            };
-
-            appState.knowledge.push(newItem);
-            saveData();
-            syncMaterialsToCloud();
-
-            e.target.reset();
-            Swal.fire({ icon: 'success', title: 'บันทึกใบความรู้สำเร็จ', text: 'ซิงค์ข้อมูลขึ้น Google Sheets เรียบร้อย', timer: 1400, showConfirmButton: false });
-            renderAdminContentList();
-        }
-
-        function handleAddActivity(e) {
-            e.preventDefault();
-            const title = document.getElementById('aTitle').value.trim();
-            const unit = document.getElementById('aUnit').value;
-            const maxScore = parseInt(document.getElementById('aMaxScore').value);
-            const dueDate = document.getElementById('aDueDate').value;
-            const pdfUrl = document.getElementById('aPdfUrl').value.trim();
-            const desc = document.getElementById('aDesc').value.trim();
-
-            const newAct = {
-                id: Date.now(),
-                title: title,
-                unit: unit,
-                maxScore: maxScore,
-                dueDate: dueDate,
-                pdfUrl: pdfUrl,
-                desc: desc
-            };
-
-            appState.activities.push(newAct);
-            saveData();
-            syncMaterialsToCloud();
-
-            e.target.reset();
-            Swal.fire({ icon: 'success', title: 'บันทึกใบกิจกรรมสำเร็จ', text: 'ซิงค์ข้อมูลขึ้น Google Sheets เรียบร้อย', timer: 1400, showConfirmButton: false });
-            renderAdminContentList();
-            populateAdminActivityFilter();
-        }
-
-        function renderAdminContentList() {
-            const container = document.getElementById('adminContentList');
-            container.innerHTML = '';
-
-            container.innerHTML += `<p class="font-semibold text-xs text-ipst-blue uppercase tracking-wider mb-2">--- ใบความรู้ ---</p>`;
-            appState.knowledge.forEach(k => {
-                container.innerHTML += `
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-xs border border-gray-200">
-                        <div>
-                            <span class="font-bold text-gray-800">${k.title}</span>
-                            <span class="text-gray-400 ml-2">(${k.unit} | ${k.type})</span>
-                        </div>
-                        <button onclick="deleteKnowledge(${k.id})" class="text-red-500 hover:text-red-700 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                `;
-            });
-
-            container.innerHTML += `<p class="font-semibold text-xs text-ipst-green uppercase tracking-wider mt-4 mb-2">--- ใบกิจกรรม ---</p>`;
-            appState.activities.forEach(a => {
-                container.innerHTML += `
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-xs border border-gray-200">
-                        <div>
-                            <span class="font-bold text-gray-800">${a.title}</span>
-                            <span class="text-gray-400 ml-2">(${a.unit} | กำหนดส่ง: ${a.dueDate})</span>
-                        </div>
-                        <button onclick="deleteActivity(${a.id})" class="text-red-500 hover:text-red-700 px-2 py-1"><i class="fa-solid fa-trash"></i></button>
-                    </div>
-                `;
             });
         }
 
-        function deleteKnowledge(id) {
-            if (confirm('ยืนยันลบใบความรู้นี้ออกจากระบบและ Cloud?')) {
-                appState.knowledge = appState.knowledge.filter(k => k.id !== id);
-                saveData();
-                syncMaterialsToCloud();
-                renderAdminContentList();
-            }
+        // Admin Render & Logic
+        function renderAdminStudents() {
+            const roomFilter = document.getElementById('adminStudentRoomSelect').value;
+            const table = document.getElementById('adminStudentsTable');
+            let filtered = state.students;
+            if (roomFilter !== 'all') filtered = filtered.filter(s => s.room === roomFilter);
+
+            table.innerHTML = filtered.map(s => `
+                <tr class="hover:bg-gray-50">
+                    <td class="p-3 font-mono font-bold text-custom-primary">${s.id}</td>
+                    <td class="p-3 font-medium text-gray-800">${s.name}</td>
+                    <td class="p-3 text-xs text-gray-500">${s.room}</td>
+                    <td class="p-3 text-xs text-gray-500">${s.number || '-'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderAdminSubmissions() {
+            const table = document.getElementById('adminSubmissionsTable');
+            table.innerHTML = state.submissions.length === 0 ? `<tr><td colspan="8" class="p-4 text-center text-gray-400">ยังไม่มีข้อมูลการส่งงาน</td></tr>` :
+                state.submissions.map(s => `
+                    <tr>
+                        <td class="p-3 text-xs text-gray-500">${new Date(s.submitDate).toLocaleDateString('th-TH')}</td>
+                        <td class="p-3">
+                            <div class="font-bold text-gray-800">${getStudentName(s.studentId)}</div>
+                            <div class="text-xs text-gray-400">รหัส: ${s.studentId}</div>
+                        </td>
+                        <td class="p-3 text-xs">${s.room || '-'}</td>
+                        <td class="p-3 text-xs font-medium">${s.activityTitle}</td>
+                        <td class="p-3"><a href="${s.fileUrl}" target="_blank" class="text-custom-primary text-xs underline">เปิดดูงาน</a></td>
+                        <td class="p-3 text-center"><span class="px-2 py-0.5 text-xs rounded-full ${s.status === 'ตรวจแล้ว' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">${s.status}</span></td>
+                        <td class="p-3 text-center font-bold text-emerald-600">${s.score !== undefined ? s.score : '-'}</td>
+                        <td class="p-3 text-center">
+                            <button onclick="gradeSubmissionModal('${s.id}')" class="bg-custom-primary hover:bg-custom-secondary text-white text-xs px-2.5 py-1 rounded">ตรวจ/ให้คะแนน</button>
+                        </td>
+                    </tr>
+                `).join('');
+        }
+
+        function gradeSubmissionModal(subId) {
+            const sub = state.submissions.find(s => s.id === subId);
+            if (!sub) return;
+            Swal.fire({
+                title: 'ตรวจงานนักเรียน',
+                html: `
+                    <div class="text-left space-y-3 text-sm">
+                        <p><strong>นักเรียน:</strong> ${getStudentName(sub.studentId)} (${sub.studentId})</p>
+                        <p><strong>หัวข้อ:</strong> ${sub.activityTitle}</p>
+                        <div><label class="block text-xs font-medium">คะแนนที่ได้:</label><input id="swalScore" type="number" class="w-full border p-2 rounded mt-1" value="${sub.score || ''}"></div>
+                        <div><label class="block text-xs font-medium">ข้อเสนอแนะเพิ่มเติม:</label><textarea id="swalFeedback" class="w-full border p-2 rounded mt-1">${sub.feedback || ''}</textarea></div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'บันทึกผลการตรวจ'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    sub.score = document.getElementById('swalScore').value;
+                    sub.feedback = document.getElementById('swalFeedback').value;
+                    sub.status = 'ตรวจแล้ว';
+                    localStorage.setItem('dt_submissions', JSON.stringify(state.submissions));
+                    syncDataToCloud({ action: 'gradeWork', ...sub });
+                    renderAdminSubmissions();
+                    Swal.fire('สำเร็จ', 'บันทึกผลคะแนนเรียบร้อย', 'success');
+                }
+            });
+        }
+
+        function renderAdminMaterialsLive() {
+            const container = document.getElementById('adminMaterialsLiveList');
+            let html = '<div class="text-xs font-bold text-gray-500 mt-2">--- ใบความรู้ ---</div>';
+            html += state.knowledge.map(k => `
+                <div class="flex justify-between items-center p-2.5 bg-gray-50 rounded-lg text-xs">
+                    <div><span class="font-bold text-gray-800">${k.title}</span> <span class="text-gray-400">(${k.unit} | ${k.type})</span></div>
+                    <button onclick="deleteMaterial('${k.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `).join('');
+
+            html += '<div class="text-xs font-bold text-gray-500 mt-4">--- ใบกิจกรรม ---</div>';
+            html += state.activities.map(a => `
+                <div class="flex justify-between items-center p-2.5 bg-gray-50 rounded-lg text-xs">
+                    <div><span class="font-bold text-emerald-800">${a.title}</span> <span class="text-gray-400">(${a.unit} | กำหนดส่ง: ${a.dueDate})</span></div>
+                    <button onclick="deleteActivity('${a.id}')" class="text-red-500 hover:text-red-700"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `).join('');
+
+            container.innerHTML = html;
+        }
+
+        function addMaterial() {
+            const title = document.getElementById('addMatTitle').value;
+            const unit = document.getElementById('addMatUnit').value;
+            const type = document.getElementById('addMatType').value;
+            const url = document.getElementById('addMatUrl').value;
+            const desc = document.getElementById('addMatDesc').value;
+            if(!title || !url) return Swal.fire('เตือน', 'กรุณากรอกข้อมูลให้ครบถ้วน', 'warning');
+            
+            const item = { id: 'k-' + Date.now(), title, unit, type, url, desc };
+            state.knowledge.push(item);
+            localStorage.setItem('dt_knowledge', JSON.stringify(state.knowledge));
+            forceSyncAllMaterialsToSheet();
+            renderAdminMaterialsLive();
+            Swal.fire('สำเร็จ', 'เพิ่มใบความรู้เรียบร้อยแล้ว', 'success');
+        }
+
+        function addActivity() {
+            const title = document.getElementById('addActTitle').value;
+            const unit = document.getElementById('addActUnit').value;
+            const maxScore = document.getElementById('addActMaxScore').value;
+            const dueDate = document.getElementById('addActDueDate').value;
+            const pdfUrl = document.getElementById('addActPdfUrl').value;
+            const desc = document.getElementById('addActDesc').value;
+            if(!title) return Swal.fire('เตือน', 'กรุณากรอกชื่อใบกิจกรรม', 'warning');
+
+            const item = { id: 'act-' + Date.now(), title, unit, maxScore, dueDate, pdfUrl, desc };
+            state.activities.push(item);
+            localStorage.setItem('dt_activities', JSON.stringify(state.activities));
+            forceSyncAllMaterialsToSheet();
+            renderAdminMaterialsLive();
+            Swal.fire('สำเร็จ', 'เพิ่มใบกิจกรรมเรียบร้อยแล้ว', 'success');
+        }
+
+        function deleteMaterial(id) {
+            state.knowledge = state.knowledge.filter(k => k.id !== id);
+            localStorage.setItem('dt_knowledge', JSON.stringify(state.knowledge));
+            forceSyncAllMaterialsToSheet();
+            renderAdminMaterialsLive();
         }
 
         function deleteActivity(id) {
-            if (confirm('ยืนยันลบใบกิจกรรมนี้ออกจากระบบและ Cloud?')) {
-                appState.activities = appState.activities.filter(a => a.id !== id);
-                saveData();
-                syncMaterialsToCloud();
-                renderAdminContentList();
-                populateAdminActivityFilter();
-            }
+            state.activities = state.activities.filter(a => a.id !== id);
+            localStorage.setItem('dt_activities', JSON.stringify(state.activities));
+            forceSyncAllMaterialsToSheet();
+            renderAdminMaterialsLive();
         }
 
-        // --- EXCEL IMPORT / STUDENT ROSTER MANAGING ---
-        function handleExcelUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                try {
-                    const data = new Uint8Array(evt.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const json = XLSX.utils.sheet_to_json(worksheet);
-
-                    let importedStudents = [];
-                    json.forEach(row => {
-                        const id = row['id'] || row['รหัส'] || row['รหัสนักเรียน'];
-                        const name = row['name'] || row['ชื่อ'] || row['ชื่อ-นามสกุล'];
-                        const room = row['room'] || row['ห้อง'] || '3/1';
-                        const num = row['number'] || row['เลขที่'] || 1;
-
-                        if (id && name) {
-                            importedStudents.push({
-                                id: String(id).trim(),
-                                name: String(name).trim(),
-                                room: String(room).trim(),
-                                number: parseInt(num)
-                            });
-                        }
-                    });
-
-                    if (importedStudents.length > 0) {
-                        appState.students = importedStudents;
-                        saveData();
-                        Swal.fire({ icon: 'success', title: 'นำเข้าข้อมูลสำเร็จ!', text: `นำเข้านักเรียนเรียบร้อย ${importedStudents.length} คน` });
-                        renderAdminStudentTable();
-                        updateAdminStats();
-                    } else {
-                        Swal.fire({ icon: 'warning', title: 'รูปแบบไฟล์ไม่ถูกต้อง', text: 'กรุณาตรวจสอบว่ามีคอลัมน์ id, name, room, number หรือไม่' });
-                    }
-                } catch (err) {
-                    Swal.fire({ icon: 'error', title: 'อ่านไฟล์ล้มเหลว', text: err.message });
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function handleAddSingleStudent(e) {
-            e.preventDefault();
-            const id = document.getElementById('addStdId').value.trim();
-            const name = document.getElementById('addStdName').value.trim();
-            const room = document.getElementById('addStdRoom').value;
-
-            if (appState.students.some(s => s.id === id)) {
-                Swal.fire({ icon: 'error', title: 'รหัสนักเรียนซ้ำ', text: 'มีนักเรียนรหัสนี้ในระบบแล้ว' });
-                return;
-            }
-
-            appState.students.push({ id, name, room, number: appState.students.length + 1 });
-            saveData();
-            e.target.reset();
-            renderAdminStudentTable();
-            updateAdminStats();
-            Swal.fire({ icon: 'success', title: 'เพิ่มนักเรียนเรียบร้อย', timer: 1000, showConfirmButton: false });
-        }
-
-        function renderAdminStudentTable() {
-            const tbody = document.getElementById('adminStudentTableBody');
-            tbody.innerHTML = '';
-
-            appState.students.forEach((std, idx) => {
-                tbody.innerHTML += `
-                    <tr class="bg-white border-b hover:bg-gray-50 text-xs">
-                        <td class="px-4 py-2.5 font-bold text-ipst-blue font-mono">${std.id}</td>
-                        <td class="px-4 py-2.5 font-medium text-gray-800">${std.name}</td>
-                        <td class="px-4 py-2.5 text-gray-600">ม.${std.room}</td>
-                        <td class="px-4 py-2.5 text-gray-500">${std.number || (idx+1)}</td>
-                        <td class="px-4 py-2.5 text-center">
-                            <button onclick="deleteStudent('${std.id}')" class="text-red-500 hover:text-red-700 text-xs"><i class="fa-solid fa-trash"></i></button>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
-        function deleteStudent(id) {
-            if (confirm('ยืนยันลบนักเรียนคนนี้?')) {
-                appState.students = appState.students.filter(s => s.id !== id);
-                saveData();
-                renderAdminStudentTable();
-                updateAdminStats();
-            }
-        }
-
-        function downloadSampleExcel() {
-            const sampleData = [
-                { id: "31337", name: "นายสมชาย ใจดี", room: "3/1", number: 1 },
-                { id: "31338", name: "นางสาวสมหญิง รักเรียน", room: "3/1", number: 2 },
-                { id: "31373", name: "นายรักชาติ ยิ่งชีพ", room: "3/2", number: 1 }
-            ];
-            const worksheet = XLSX.utils.json_to_sheet(sampleData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Students");
-            XLSX.writeFile(workbook, "Sample_Student_Roster_M3.xlsx");
-        }
-
-        // --- EXPORT ALL SUBMISSIONS TO EXCEL ---
-        function exportDataToExcel() {
-            let exportData = [];
-
-            appState.students.forEach(std => {
-                appState.activities.forEach(act => {
-                    const sub = appState.submissions.find(s => (s.activityId === act.id || s.activityTitle === act.title) && String(s.studentId) === String(std.id));
-                    exportData.push({
-                        "รหัสนักเรียน": std.id,
-                        "ชื่อ-นามสกุล": std.name,
-                        "ห้อง": std.room,
-                        "ชื่อใบกิจกรรม": act.title,
-                        "กำหนดส่ง": act.dueDate,
-                        "สถานะส่ง": sub ? "ส่งแล้ว" : "ยังไม่ส่ง",
-                        "เวลาส่ง": sub ? sub.submitDate : "-",
-                        "ลิงก์งาน": sub ? sub.fileUrl : "-",
-                        "สถานะตรวจ": sub ? (sub.status === 'checked' ? 'ตรวจแล้ว' : 'รอตรวจ') : "-",
-                        "คะแนน": sub ? sub.score : 0,
-                        "คะแนนเต็ม": act.maxScore,
-                        "ข้อเสนอแนะ": sub ? sub.feedback : ""
-                    });
-                });
-            });
-
-            const worksheet = XLSX.utils.json_to_sheet(exportData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "สรุปการส่งงาน");
-            XLSX.writeFile(workbook, "สรุปการส่งงาน_ว23104_ปี2569.xlsx");
-        }
-
-        // --- SETTINGS LOGIC ---
-        function saveGoogleScriptUrl() {
-            const url = document.getElementById('googleScriptUrl').value.trim();
-            appState.scriptUrl = url;
+        // Cloud & Script Syncing
+        function saveScriptUrlSetting() {
+            const url = document.getElementById('settingScriptUrl').value.trim();
+            state.scriptUrl = url;
             localStorage.setItem('dt_script_url', url);
-            Swal.fire({ icon: 'success', title: 'บันทึก URL สำเร็จ', text: 'กำลังเริ่มการซิงค์ข้อมูลกับ Google Sheets...' });
-            syncDataFromCloud(true);
+            Swal.fire('สำเร็จ', 'บันทึก Web App URL เรียบร้อยแล้ว', 'success');
+            fetchCloudData();
         }
 
-        function testGoogleScriptConnection() {
-            if (!appState.scriptUrl || appState.scriptUrl === 'กรอก_WEBAPP_URL_ที่นี่') {
-                Swal.fire({ icon: 'warning', title: 'ยังไม่ได้กรอก URL', text: 'กรุณากรอก Web App URL ก่อนกดทดสอบ' });
-                return;
-            }
-            syncDataFromCloud(true);
+        function forceSyncAllMaterialsToSheet() {
+            if(!state.scriptUrl) return;
+            syncDataToCloud({
+                action: 'syncMaterials',
+                knowledge: state.knowledge,
+                activities: state.activities
+            });
         }
 
-        // --- INITIALIZATION ON LOAD ---
-        window.onload = function() {
-            if (appState.scriptUrl && appState.scriptUrl !== 'กรอก_WEBAPP_URL_ที่นี่') {
-                document.getElementById('googleScriptUrl').value = appState.scriptUrl;
-                document.getElementById('cloudSyncIndicator').classList.remove('hidden');
-                syncDataFromCloud(false);
-            }
-        };
+        function syncDataToCloud(payload) {
+            if(!state.scriptUrl) return;
+            fetch(state.scriptUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).catch(err => console.error('Cloud Sync Error:', err));
+        }
+
+        function fetchCloudData() {
+            if(!state.scriptUrl) return;
+            fetch(state.scriptUrl)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.knowledge) {
+                        state.knowledge = data.knowledge;
+                        localStorage.setItem('dt_knowledge', JSON.stringify(data.knowledge));
+                    }
+                    if (data.activities) {
+                        state.activities = data.activities;
+                        localStorage.setItem('dt_activities', JSON.stringify(data.activities));
+                    }
+                    if (data.submissions) {
+                        state.submissions = data.submissions;
+                        localStorage.setItem('dt_submissions', JSON.stringify(data.submissions));
+                    }
+                    if (state.currentUser) renderAppView();
+                })
+                .catch(err => console.error('Cloud Fetch Error:', err));
+        }
+
+        // Excel Export
+        function exportToExcel() {
+            const data = state.submissions.map(s => ({
+                'วันเวลาที่ส่ง': new Date(s.submitDate).toLocaleString('th-TH'),
+                'รหัสนักเรียน': s.studentId,
+                'ชื่อ-นามสกุล': getStudentName(s.studentId),
+                'ห้องเรียน': s.room || '-',
+                'ใบกิจกรรม': s.activityTitle,
+                'ลิงก์งาน': s.fileUrl,
+                'สถานะ': s.status,
+                'คะแนน': s.score || 0,
+                'ข้อเสนอแนะ': s.feedback || '-'
+            }));
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "คะแนนนักเรียน");
+            XLSX.writeFile(wb, "ผลการเรียน_ว23104.xlsx");
+        }
+
+        // Tab Navigation Helpers
+        function switchStudentTab(tab) {
+            ['Materials', 'Assignments', 'Status'].forEach(t => {
+                document.getElementById(`studentTab${t}`).classList.add('hidden');
+                document.getElementById(`tabBtn${t}`).className = 'py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-custom-primary flex items-center space-x-2';
+            });
+            const cap = tab.charAt(0).toUpperCase() + tab.slice(1);
+            document.getElementById(`studentTab${cap}`).classList.remove('hidden');
+            document.getElementById(`tabBtn${cap}`).className = 'py-3 px-4 font-medium border-b-2 border-custom-primary text-custom-primary flex items-center space-x-2';
+        }
+
+        function switchAdminTab(tab) {
+            ['Grading', 'Students', 'Materials', 'Settings'].forEach(t => {
+                document.getElementById(`adminTab${t}`).classList.add('hidden');
+                document.getElementById(`adminTabBtn${t}`).className = 'py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-custom-primary whitespace-nowrap';
+            });
+            const cap = tab.charAt(0).toUpperCase() + tab.slice(1);
+            document.getElementById(`adminTab${cap}`).classList.remove('hidden');
+            document.getElementById(`adminTabBtn${cap}`).className = 'py-3 px-4 font-medium border-b-2 border-custom-primary text-custom-primary whitespace-nowrap';
+        }
     </script>
 </body>
 </html>
