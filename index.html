@@ -172,9 +172,14 @@
                             <option value="ยังไม่ส่ง">ยังไม่ส่ง</option>
                         </select>
                     </div>
-                    <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2">
-                        <i class="fa-solid fa-file-excel"></i><span>ส่งออกคะแนนเป็น Excel</span>
-                    </button>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="manualRefreshCloudData()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm font-medium flex items-center space-x-1 shadow-sm">
+                            <i class="fa-solid fa-rotate mr-1"></i><span>ดึงข้อมูลล่าสุดจาก Cloud</span>
+                        </button>
+                        <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center space-x-2 shadow-sm">
+                            <i class="fa-solid fa-file-excel"></i><span>ส่งออกคะแนนเป็น Excel</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -510,11 +515,11 @@
 
         function renderStudentAssignments() {
             const grid = document.getElementById('studentAssignmentsGrid');
-            const mySubs = state.submissions.filter(s => String(s.studentId) === String(state.currentUser.id));
+            const mySubs = state.submissions.filter(s => String(s.studentId).trim() === String(state.currentUser.id).trim());
 
             grid.innerHTML = state.activities.length === 0 ? '<div class="col-span-2 text-center text-gray-400 py-8">ยังไม่มีใบกิจกรรม</div>' :
                 state.activities.map(a => {
-                    const sub = mySubs.find(s => String(s.activityId) === String(a.id) || s.activityTitle === a.title);
+                    const sub = mySubs.find(s => String(s.activityId).trim() === String(a.id).trim() || s.activityTitle === a.title);
                     const status = sub ? sub.status : 'ยังไม่ส่ง';
                     
                     let actionButtonHtml = '';
@@ -559,11 +564,11 @@
 
         function renderStudentStatus() {
             const table = document.getElementById('studentStatusTable');
-            const studentId = String(state.currentUser.id);
-            const mySubs = state.submissions.filter(s => String(s.studentId) === studentId);
+            const studentId = String(state.currentUser.id).trim();
+            const mySubs = state.submissions.filter(s => String(s.studentId).trim() === studentId);
             
             const allActivitiesStatus = state.activities.map(act => {
-                const sub = mySubs.find(s => String(s.activityId) === String(act.id) || s.activityTitle === act.title);
+                const sub = mySubs.find(s => String(s.activityId).trim() === String(act.id).trim() || s.activityTitle === act.title);
                 if (sub) {
                     return {
                         submitDate: sub.submitDate,
@@ -602,7 +607,7 @@
         }
 
         function openSubmitModal(actId, actTitle, currentUrl = '') {
-            const existingSub = state.submissions.find(s => String(s.studentId) === String(state.currentUser.id) && (String(s.activityId) === String(actId) || s.activityTitle === actTitle));
+            const existingSub = state.submissions.find(s => String(s.studentId).trim() === String(state.currentUser.id).trim() && (String(s.activityId).trim() === String(actId).trim() || s.activityTitle === actTitle));
             
             if (existingSub && existingSub.status === 'ตรวจแล้ว') {
                 return Swal.fire('ไม่สามารถแก้ไขได้', 'งานชิ้นนี้ได้รับการตรวจแล้ว หากต้องการส่งใหม่กรุณาแจ้งครูผู้สอนให้ส่งคืนงาน', 'warning');
@@ -619,7 +624,7 @@
                 confirmButtonText: 'บันทึกการส่งงาน'
             }).then((res) => {
                 if (res.isConfirmed && res.value) {
-                    const existingIndex = state.submissions.findIndex(s => String(s.studentId) === String(state.currentUser.id) && (String(s.activityId) === String(actId) || s.activityTitle === actTitle));
+                    const existingIndex = state.submissions.findIndex(s => String(s.studentId).trim() === String(state.currentUser.id).trim() && (String(s.activityId).trim() === String(actId).trim() || s.activityTitle === actTitle));
                     const newSub = {
                         id: existingIndex >= 0 ? state.submissions[existingIndex].id : 'sub-' + Date.now(),
                         submitDate: new Date().toISOString(),
@@ -681,21 +686,28 @@
         function getFullSubmissionsList() {
             let list = [];
             let studentsList = state.students.length > 0 ? state.students : [];
+            let processedSubIds = new Set();
             
-            if (studentsList.length === 0 && state.submissions.length > 0) {
+            if (studentsList.length === 0) {
                 return state.submissions;
             }
 
             studentsList.forEach(st => {
+                const stId = String(st.id).trim();
                 if (state.activities.length === 0) {
-                    const stSubs = state.submissions.filter(sub => String(sub.studentId) === String(st.id));
-                    if (stSubs.length > 0) {
-                        list.push(...stSubs);
-                    }
+                    const stSubs = state.submissions.filter(sub => String(sub.studentId).trim() === stId);
+                    stSubs.forEach(sub => {
+                        processedSubIds.add(sub.id);
+                        list.push(sub);
+                    });
                 } else {
                     state.activities.forEach(act => {
-                        const sub = state.submissions.find(s => String(s.studentId) === String(st.id) && (String(s.activityId) === String(act.id) || s.activityTitle === act.title));
+                        const sub = state.submissions.find(s => 
+                            String(s.studentId).trim() === stId && 
+                            (String(s.activityId).trim() === String(act.id).trim() || s.activityTitle === act.title)
+                        );
                         if (sub) {
+                            processedSubIds.add(sub.id);
                             list.push(sub);
                         } else {
                             list.push({
@@ -715,6 +727,14 @@
                     });
                 }
             });
+
+            // Prevent loss of submissions by including any orphan submissions from Google Sheets
+            state.submissions.forEach(sub => {
+                if (sub && sub.id && !processedSubIds.has(sub.id)) {
+                    list.push(sub);
+                }
+            });
+
             return list;
         }
 
@@ -749,13 +769,18 @@
         }
 
         function gradeSubmissionModal(subId) {
-            const sub = state.submissions.find(s => s.id === subId);
+            let sub = state.submissions.find(s => s.id === subId);
+            if (!sub) {
+                const fullList = getFullSubmissionsList();
+                sub = fullList.find(s => s.id === subId);
+            }
             if (!sub) return;
+
             Swal.fire({
                 title: 'ตรวจงานนักเรียน',
                 html: `
                     <div class="text-left space-y-3 text-sm">
-                        <p><strong>นักเรียน:</strong> ${getStudentName(sub.studentId)} (${sub.studentId})</p>
+                        <p><strong>นักเรียน:</strong> ${sub.studentName || getStudentName(sub.studentId)} (${sub.studentId})</p>
                         <p><strong>หัวข้อ:</strong> ${sub.activityTitle}</p>
                         <p><strong>งานที่ส่ง:</strong> <a href="${sub.fileUrl}" target="_blank" class="text-blue-600 underline">คลิกเปิดดูผลงาน</a></p>
                         <div>
@@ -800,12 +825,61 @@
                         sub.score = document.getElementById('swalScore').value;
                     }
 
+                    const existingIdx = state.submissions.findIndex(s => s.id === sub.id);
+                    if (existingIdx >= 0) {
+                        state.submissions[existingIdx] = sub;
+                    } else {
+                        state.submissions.push(sub);
+                    }
+
                     localStorage.setItem('dt_submissions', JSON.stringify(state.submissions));
                     syncDataToCloud({ action: 'gradeWork', ...sub });
                     renderAdminSubmissions();
                     Swal.fire('สำเร็จ', actionStatus === 'ส่งคืนให้แก้ไข' ? 'ส่งคืนงานให้นักเรียนเรียบร้อยแล้ว' : 'บันทึกคะแนนเรียบร้อยแล้ว', 'success');
                 }
             });
+        }
+
+        function manualRefreshCloudData() {
+            Swal.fire({
+                title: 'กำลังดึงข้อมูลล่าสุด...',
+                text: 'กำลังซิงค์ข้อมูลจาก Google Sheets',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            if(!state.scriptUrl || state.scriptUrl.includes('YOUR-SCRIPT-URL')) {
+                Swal.fire('เตือน', 'กรุณาตั้งค่า Web App URL ในแท็บที่ 4 ก่อนครับ', 'warning');
+                return;
+            }
+
+            fetch(state.scriptUrl)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.students && data.students.length > 0) {
+                        state.students = data.students;
+                        localStorage.setItem('dt_students', JSON.stringify(data.students));
+                    }
+                    if (data.knowledge) {
+                        state.knowledge = data.knowledge;
+                        localStorage.setItem('dt_knowledge', JSON.stringify(data.knowledge));
+                    }
+                    if (data.activities) {
+                        state.activities = data.activities;
+                        localStorage.setItem('dt_activities', JSON.stringify(data.activities));
+                    }
+                    if (data.submissions) {
+                        state.submissions = data.submissions;
+                        localStorage.setItem('dt_submissions', JSON.stringify(data.submissions));
+                    }
+                    renderAdminSubmissions();
+                    renderAdminStudents();
+                    Swal.fire('สำเร็จ', `อัปเดตข้อมูลล่าสุดเรียบร้อยแล้ว (พบข้อมูลส่งงาน ${state.submissions.length} รายการ)`, 'success');
+                })
+                .catch(err => {
+                    console.error('Cloud Fetch Error:', err);
+                    Swal.fire('ข้อผิดพลาด', 'ไม่สามารถดึงข้อมูลจาก Google Sheets ได้ กรุณาเช็ก Web App URL', 'error');
+                });
         }
 
         function renderAdminMaterialsLive() {
@@ -917,7 +991,7 @@
         }
 
         function forceSyncAllMaterialsToSheet() {
-            if(!state.scriptUrl) return;
+            if(!state.scriptUrl || state.scriptUrl.includes('YOUR-SCRIPT-URL')) return;
             syncDataToCloud({
                 action: 'syncMaterials',
                 knowledge: state.knowledge,
@@ -926,7 +1000,7 @@
         }
 
         function syncDataToCloud(payload) {
-            if(!state.scriptUrl) return;
+            if(!state.scriptUrl || state.scriptUrl.includes('YOUR-SCRIPT-URL')) return;
             fetch(state.scriptUrl, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -936,7 +1010,7 @@
         }
 
         function fetchCloudData() {
-            if(!state.scriptUrl) return;
+            if(!state.scriptUrl || state.scriptUrl.includes('YOUR-SCRIPT-URL')) return;
             fetch(state.scriptUrl)
                 .then(res => res.json())
                 .then(data => {
