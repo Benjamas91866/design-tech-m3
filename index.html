@@ -551,7 +551,6 @@
             {"id":"32645","name":"ด.ญ.ชมพู่ กาลจี","room":"ม.3/11","number":40}
         ];
 
-        // Ensure full 407 roster fallback generation if array subset is present
         function getFullRoster() {
             let roster = [...MASTER_STUDENT_ROSTER];
             const rooms = [
@@ -585,7 +584,7 @@
         }
 
         // =========================================================================
-        // 3. APPLICATION STATE MANAGEMENT (NO FALLBACK DUMMY DATA)
+        // 3. APPLICATION STATE MANAGEMENT
         // =========================================================================
         let state = {
             currentUser: null,
@@ -612,10 +611,14 @@
             const stdSelect = document.getElementById('admStudentRoomSelect');
             const grdSelect = document.getElementById('admGradingRoomFilter');
 
-            roomList.forEach(r => {
-                stdSelect.innerHTML += `<option value="${r}">${r}</option>`;
-                grdSelect.innerHTML += `<option value="${r}">${r}</option>`;
-            });
+            if (stdSelect) {
+                stdSelect.innerHTML = '<option value="all">-- แสดงทุกห้องเรียน (ม.3/1 - ม.3/11) --</option>';
+                roomList.forEach(r => stdSelect.innerHTML += `<option value="${r}">${r}</option>`);
+            }
+            if (grdSelect) {
+                grdSelect.innerHTML = '<option value="all">-- ทุกห้องเรียน (ม.3/1 - ม.3/11) --</option>';
+                roomList.forEach(r => grdSelect.innerHTML += `<option value="${r}">${r}</option>`);
+            }
         }
 
         function saveLocalState() {
@@ -643,15 +646,15 @@
             if (role === 'student') {
                 btnStd.className = 'flex-1 py-2 text-xs font-medium rounded-lg text-brand-navy bg-white shadow-sm font-heading';
                 btnAdm.className = 'flex-1 py-2 text-xs font-medium rounded-lg text-gray-500 hover:text-brand-navy font-heading';
-                lblUser.innerText = 'รหัสนักเรียน';
-                lblPass.innerText = 'รหัสผ่าน (ใช้รหัสนักเรียนเดียวกัน)';
-                inputUser.placeholder = 'กรอกรหัสนักเรียน 5 หลัก (เช่น 31337)';
+                if (lblUser) lblUser.innerText = 'รหัสนักเรียน';
+                if (lblPass) lblPass.innerText = 'รหัสผ่าน (ใช้รหัสนักเรียนเดียวกัน)';
+                if (inputUser) inputUser.placeholder = 'กรอกรหัสนักเรียน 5 หลัก (เช่น 31337)';
             } else {
                 btnAdm.className = 'flex-1 py-2 text-xs font-medium rounded-lg text-brand-navy bg-white shadow-sm font-heading';
                 btnStd.className = 'flex-1 py-2 text-xs font-medium rounded-lg text-gray-500 hover:text-brand-navy font-heading';
-                lblUser.innerText = 'ชื่อผู้ใช้ (Username)';
-                lblPass.innerText = 'รหัสผ่าน (Password)';
-                inputUser.placeholder = 'admin';
+                if (lblUser) lblUser.innerText = 'ชื่อผู้ใช้ (Username)';
+                if (lblPass) lblPass.innerText = 'รหัสผ่าน (Password)';
+                if (inputUser) inputUser.placeholder = 'admin';
             }
         }
 
@@ -672,7 +675,6 @@
             } else {
                 let student = state.students.find(s => String(s.id).trim() === uVal);
                 
-                // If student doesn't exist or name is a placeholder (นักเรียนรหัส...), prompt student to register Thai name
                 if (!student || student.name.startsWith('นักเรียนรหัส') || !student.name) {
                     Swal.fire({
                         title: 'ลงทะเบียนชื่อ-นามสกุลจริง',
@@ -757,21 +759,24 @@
         function handleLogout() {
             state.currentUser = null;
             localStorage.removeItem('dt_current_user');
-            document.getElementById('formLogin').reset();
+            const form = document.getElementById('formLogin');
+            if (form) form.reset();
             showView('login');
         }
 
         function renderActiveView() {
             const navUserArea = document.getElementById('navUserArea');
             if (!state.currentUser) {
-                navUserArea.classList.add('hidden');
+                if (navUserArea) navUserArea.classList.add('hidden');
                 showView('login');
                 return;
             }
 
-            navUserArea.classList.remove('hidden');
-            document.getElementById('navUserName').innerText = state.currentUser.name;
-            document.getElementById('navUserSub').innerText = state.currentUser.role === 'admin' ? 'สิทธิ์ผู้ดูแลระบบ (Admin)' : `${state.currentUser.room}`;
+            if (navUserArea) navUserArea.classList.remove('hidden');
+            const navName = document.getElementById('navUserName');
+            const navSub = document.getElementById('navUserSub');
+            if (navName) navName.innerText = state.currentUser.name;
+            if (navSub) navSub.innerText = state.currentUser.role === 'admin' ? 'สิทธิ์ผู้ดูแลระบบ (Admin)' : `${state.currentUser.room}`;
 
             if (state.currentUser.role === 'admin') {
                 showView('admin');
@@ -779,10 +784,12 @@
                 renderAdminStudents();
                 renderAdminSubmissions();
                 renderAdminLiveContent();
-                document.getElementById('settingScriptUrlInput').value = state.scriptUrl || '';
+                const urlInput = document.getElementById('settingScriptUrlInput');
+                if (urlInput) urlInput.value = state.scriptUrl || '';
             } else {
                 showView('student');
-                document.getElementById('stdWelcomeName').innerText = `สวัสดี, ${state.currentUser.name}`;
+                const welcomeEl = document.getElementById('stdWelcomeName');
+                if (welcomeEl) welcomeEl.innerText = `สวัสดี, ${state.currentUser.name}`;
                 renderStudentKnowledge();
                 renderStudentActivities();
                 renderStudentStatus();
@@ -790,12 +797,561 @@
         }
 
         function showView(view) {
-            document.getElementById('viewLogin').classList.add('hidden');
-            document.getElementById('viewStudent').classList.add('hidden');
-            document.getElementById('viewAdmin').classList.add('hidden');
-            if (view === 'login') document.getElementById('viewLogin').classList.remove('hidden');
-            if (view === 'student') document.getElementById('viewStudent').classList.remove('hidden');
-            if (view === 'admin') document.getElementById('viewAdmin').classList.remove('hidden');
+            const vLogin = document.getElementById('viewLogin');
+            const vStudent = document.getElementById('viewStudent');
+            const vAdmin = document.getElementById('viewAdmin');
+
+            if (vLogin) vLogin.classList.add('hidden');
+            if (vStudent) vStudent.classList.add('hidden');
+            if (vAdmin) vAdmin.classList.add('hidden');
+
+            if (view === 'login' && vLogin) vLogin.classList.remove('hidden');
+            if (view === 'student' && vStudent) vStudent.classList.remove('hidden');
+            if (view === 'admin' && vAdmin) vAdmin.classList.remove('hidden');
+        }
+
+        // =========================================================================
+        // 5. STUDENT VIEW CONTROLLERS & TAB SWITCHING
+        // =========================================================================
+        function switchStudentTab(tabKey) {
+            const tabs = ['knowledge', 'activity', 'status'];
+            tabs.forEach(t => {
+                const cap = t.charAt(0).toUpperCase() + t.slice(1);
+                const content = document.getElementById(`stdTab${cap}`);
+                const btn = document.getElementById(`stdTabBtn${cap}`);
+                if (content) content.classList.add('hidden');
+                if (btn) btn.className = 'py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-brand-navy font-heading text-sm flex items-center space-x-2 whitespace-nowrap';
+            });
+
+            const activeCap = tabKey.charAt(0).toUpperCase() + tabKey.slice(1);
+            const activeContent = document.getElementById(`stdTab${activeCap}`);
+            const activeBtn = document.getElementById(`stdTabBtn${activeCap}`);
+            if (activeContent) activeContent.classList.remove('hidden');
+            if (activeBtn) activeBtn.className = 'py-3 px-4 font-medium border-b-2 border-brand-navy text-brand-navy font-heading text-sm flex items-center space-x-2 whitespace-nowrap';
+        }
+
+        function renderStudentKnowledge() {
+            const grid = document.getElementById('stdKnowledgeGrid');
+            if (!grid) return;
+            const filter = document.getElementById('stdKnowledgeUnitFilter')?.value || 'all';
+            
+            let items = state.knowledge;
+            if (filter !== 'all') {
+                items = items.filter(k => k.unit === filter);
+            }
+
+            if (items.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-400 font-medium">ยังไม่มีใบความรู้ในระบบ</div>`;
+                return;
+            }
+
+            grid.innerHTML = items.map(k => `
+                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition space-y-3 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="bg-blue-100 text-brand-navy text-[11px] font-semibold px-2.5 py-0.5 rounded-full">${k.unit || 'ทั่วไป'}</span>
+                            <span class="text-[11px] text-red-500 font-bold uppercase"><i class="fa-solid fa-file-pdf mr-1"></i>${k.type || 'PDF'}</span>
+                        </div>
+                        <h4 class="font-heading font-bold text-gray-800 text-base leading-snug">${k.title}</h4>
+                        <p class="text-xs text-gray-500 mt-1 line-clamp-2">${k.desc || ''}</p>
+                    </div>
+                    <a href="${k.url}" target="_blank" rel="noopener noreferrer" class="mt-3 w-full text-center bg-brand-navy hover:bg-brand-blue text-white text-xs font-medium py-2 rounded-lg transition flex items-center justify-center space-x-1">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                        <span>เปิดอ่านใบความรู้</span>
+                    </a>
+                </div>
+            `).join('');
+        }
+
+        function renderStudentActivities() {
+            const grid = document.getElementById('stdActivityGrid');
+            if (!grid) return;
+
+            if (state.activities.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-400 font-medium">ยังไม่มีใบกิจกรรมในระบบ</div>`;
+                return;
+            }
+
+            grid.innerHTML = state.activities.map(a => `
+                <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition space-y-3 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="bg-emerald-100 text-brand-emerald text-[11px] font-semibold px-2.5 py-0.5 rounded-full">${a.unit || 'ทั่วไป'}</span>
+                            <span class="text-xs text-red-500 font-medium"><i class="fa-solid fa-clock mr-1"></i>กำหนดส่ง: ${a.dueDate || 'ไม่ระบุ'}</span>
+                        </div>
+                        <h4 class="font-heading font-bold text-gray-800 text-base leading-snug">${a.title}</h4>
+                        <p class="text-xs text-gray-600 mt-1">${a.desc || ''}</p>
+                        <div class="text-xs text-gray-400 mt-2">คะแนนเต็ม: <span class="font-bold text-brand-emerald">${a.maxScore || 10}</span> คะแนน</div>
+                    </div>
+                    <div class="pt-3 border-t border-gray-100 flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
+                        <a href="${a.pdfUrl || '#'}" target="_blank" rel="noopener noreferrer" class="text-xs text-brand-navy font-semibold hover:underline flex items-center space-x-1">
+                            <i class="fa-solid fa-download"></i><span>ดาวน์โหลดโจทย์/ใบงาน</span>
+                        </a>
+                        <button onclick="openSubmitModal('${a.id}', '${a.title.replace(/'/g, "\\'")}')" class="bg-brand-emerald hover:bg-brand-darkEmerald text-white text-xs px-3.5 py-2 rounded-lg font-medium transition shadow-sm flex items-center space-x-1">
+                            <i class="fa-solid fa-paper-plane"></i><span>ส่งงานในหัวข้อนี้</span>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderStudentStatus() {
+            const tableBody = document.getElementById('stdStatusTableBody');
+            if (!tableBody || !state.currentUser) return;
+
+            const mySubs = state.submissions.filter(s => String(s.studentId).trim() === String(state.currentUser.id).trim());
+            
+            const gradedCount = mySubs.filter(s => s.status === 'ตรวจแล้ว').length;
+            const progressEl = document.getElementById('stdProgressText');
+            if (progressEl) {
+                progressEl.innerText = `${gradedCount} / ${state.activities.length}`;
+            }
+
+            if (mySubs.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-400">ยังไม่มีประวัติการส่งงานของคุณ</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = mySubs.map(s => `
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="p-3 font-medium text-gray-800">${s.activityTitle}</td>
+                    <td class="p-3 text-xs text-gray-500">${new Date(s.submitDate).toLocaleString('th-TH')}</td>
+                    <td class="p-3"><a href="${s.fileUrl}" target="_blank" rel="noopener noreferrer" class="text-brand-navy font-semibold underline flex items-center space-x-1"><i class="fa-solid fa-external-link"></i><span>เปิดดูงานที่ส่ง</span></a></td>
+                    <td class="p-3 text-center"><span class="px-2.5 py-1 text-[11px] font-semibold rounded-full ${s.status === 'ตรวจแล้ว' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${s.status}</span></td>
+                    <td class="p-3 text-center font-bold text-sm ${s.status === 'ตรวจแล้ว' ? 'text-emerald-600' : 'text-gray-400'}">${s.score !== undefined && s.score !== '' ? s.score : '-'}</td>
+                    <td class="p-3 text-xs text-gray-600">${s.feedback || '-'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function openSubmitModal(actId, actTitle) {
+            Swal.fire({
+                title: 'ส่งงานใบกิจกรรม',
+                text: actTitle,
+                input: 'url',
+                inputLabel: 'วางลิงก์ไฟล์งานของคุณ (Google Drive / Canva / PDF Link):',
+                inputPlaceholder: 'https://...',
+                showCancelButton: true,
+                confirmButtonText: 'ส่งงาน',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#10b981',
+                inputValidator: (value) => {
+                    if (!value || !value.startsWith('http')) {
+                        return 'กรุณากรอก URL ลิงก์งานที่ถูกต้อง (ขึ้นต้นด้วย http:// หรือ https://)';
+                    }
+                }
+            }).then((res) => {
+                if (res.isConfirmed && res.value) {
+                    const newSub = {
+                        id: 'sub-' + Date.now(),
+                        submitDate: new Date().toISOString(),
+                        studentId: state.currentUser.id,
+                        studentName: state.currentUser.name,
+                        room: state.currentUser.room,
+                        activityId: actId,
+                        activityTitle: actTitle,
+                        fileUrl: res.value,
+                        status: 'รอตรวจ',
+                        score: '',
+                        feedback: ''
+                    };
+                    state.submissions.push(newSub);
+                    saveLocalState();
+                    syncDataToCloud({ action: 'submitWork', ...newSub });
+                    renderStudentStatus();
+                    updateAdminDashboardStats();
+                    Swal.fire('ส่งงานสำเร็จ!', 'ระบบบันทึกการส่งงานของคุณเรียบร้อยแล้ว', 'success');
+                }
+            });
+        }
+
+        // =========================================================================
+        // 6. ADMIN VIEW CONTROLLERS & TAB SWITCHING
+        // =========================================================================
+        function switchAdminTab(tabKey) {
+            const tabs = ['grading', 'students', 'content', 'settings'];
+            tabs.forEach(t => {
+                const cap = t.charAt(0).toUpperCase() + t.slice(1);
+                const content = document.getElementById(`admTab${cap}`);
+                const btn = document.getElementById(`admTabBtn${cap}`);
+                if (content) content.classList.add('hidden');
+                if (btn) btn.className = 'py-3 px-4 font-medium border-b-2 border-transparent text-gray-500 hover:text-brand-navy font-heading text-sm whitespace-nowrap';
+            });
+
+            const activeCap = tabKey.charAt(0).toUpperCase() + tabKey.slice(1);
+            const activeContent = document.getElementById(`admTab${activeCap}`);
+            const activeBtn = document.getElementById(`admTabBtn${activeCap}`);
+            if (activeContent) activeContent.classList.remove('hidden');
+            if (activeBtn) activeBtn.className = 'py-3 px-4 font-medium border-b-2 border-brand-navy text-brand-navy font-heading text-sm whitespace-nowrap';
+        }
+
+        function updateAdminDashboardStats() {
+            const totalStd = document.getElementById('statTotalStudents');
+            const totalSub = document.getElementById('statTotalSubmissions');
+            const pending = document.getElementById('statPendingCount');
+            const graded = document.getElementById('statGradedCount');
+
+            if (totalStd) totalStd.innerText = `${state.students.length} คน`;
+            if (totalSub) totalSub.innerText = `${state.submissions.length} รายการ`;
+            if (pending) pending.innerText = `${state.submissions.filter(s => s.status === 'รอตรวจ').length} รายการ`;
+            if (graded) graded.innerText = `${state.submissions.filter(s => s.status === 'ตรวจแล้ว').length} รายการ`;
+        }
+
+        function renderAdminSubmissions() {
+            const tableBody = document.getElementById('admSubmissionsTableBody');
+            if (!tableBody) return;
+
+            const roomFilter = document.getElementById('admGradingRoomFilter')?.value || 'all';
+            const statusFilter = document.getElementById('admGradingStatusFilter')?.value || 'all';
+
+            let subs = state.submissions;
+            if (roomFilter !== 'all') {
+                subs = subs.filter(s => s.room === roomFilter);
+            }
+            if (statusFilter !== 'all') {
+                subs = subs.filter(s => s.status === statusFilter);
+            }
+
+            if (subs.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-gray-400">ยังไม่มีรายการส่งงานตามเงื่อนไขที่เลือก</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = subs.map(s => {
+                const std = getStudentInfo(s.studentId);
+                return `
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="p-3 text-xs text-gray-500">${new Date(s.submitDate).toLocaleString('th-TH')}</td>
+                        <td class="p-3">
+                            <div class="font-bold text-gray-800 text-xs">${std.name}</div>
+                            <div class="text-[10px] text-gray-400 font-mono">รหัส: ${s.studentId}</div>
+                        </td>
+                        <td class="p-3 text-xs text-gray-600">${s.room || std.room || '-'}</td>
+                        <td class="p-3 text-xs font-medium text-gray-800">${s.activityTitle}</td>
+                        <td class="p-3"><a href="${s.fileUrl}" target="_blank" rel="noopener noreferrer" class="text-brand-navy font-semibold underline flex items-center space-x-1"><i class="fa-solid fa-external-link"></i><span>ตรวจงาน</span></a></td>
+                        <td class="p-3 text-center"><span class="px-2.5 py-0.5 text-[10px] font-semibold rounded-full ${s.status === 'ตรวจแล้ว' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${s.status}</span></td>
+                        <td class="p-3 text-center font-bold text-xs ${s.status === 'ตรวจแล้ว' ? 'text-emerald-600' : 'text-gray-400'}">${s.score !== undefined && s.score !== '' ? s.score : '-'}</td>
+                        <td class="p-3 text-center">
+                            <button onclick="gradeSubmissionModal('${s.id}')" class="bg-brand-navy hover:bg-brand-blue text-white text-[11px] px-2.5 py-1 rounded-lg font-medium transition shadow-sm">
+                                <i class="fa-solid fa-marker mr-1"></i>ตรวจ/ให้คะแนน
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function gradeSubmissionModal(subId) {
+            const sub = state.submissions.find(s => s.id === subId);
+            if (!sub) return;
+            const std = getStudentInfo(sub.studentId);
+
+            Swal.fire({
+                title: 'ตรวจงานและบันทึกคะแนน',
+                html: `
+                    <div class="text-left space-y-3 text-xs">
+                        <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                            <p><strong>นักเรียน:</strong> ${std.name} (${sub.studentId}) | ${sub.room || std.room}</p>
+                            <p class="mt-1"><strong>ใบกิจกรรม:</strong> ${sub.activityTitle}</p>
+                            <p class="mt-1"><strong>ลิงก์งาน:</strong> <a href="${sub.fileUrl}" target="_blank" class="text-blue-600 underline">${sub.fileUrl}</a></p>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-gray-700 mb-1">คะแนนที่ได้:</label>
+                            <input id="swalScore" type="number" class="w-full border p-2 rounded-lg text-sm" value="${sub.score || ''}" placeholder="กรอกคะแนน">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-gray-700 mb-1">ข้อเสนอแนะเพิ่มเติมจากครู:</label>
+                            <textarea id="swalFeedback" rows="3" class="w-full border p-2 rounded-lg text-sm" placeholder="คำชี้แนะ/ข้อคิดเห็นเพิ่มเติม">${sub.feedback || ''}</textarea>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'บันทึกผลการตรวจ',
+                cancelButtonText: 'ยกเลิก',
+                confirmButtonColor: '#0f4c81',
+                preConfirm: () => {
+                    const score = document.getElementById('swalScore').value;
+                    const feedback = document.getElementById('swalFeedback').value;
+                    if (score === '') {
+                        Swal.showValidationMessage('กรุณากรอกคะแนนก่อนบันทึก');
+                        return false;
+                    }
+                    return { score, feedback };
+                }
+            }).then((res) => {
+                if (res.isConfirmed && res.value) {
+                    sub.score = res.value.score;
+                    sub.feedback = res.value.feedback;
+                    sub.status = 'ตรวจแล้ว';
+                    saveLocalState();
+                    syncDataToCloud({ action: 'gradeWork', ...sub });
+                    renderAdminSubmissions();
+                    updateAdminDashboardStats();
+                    Swal.fire('สำเร็จ', 'บันทึกคะแนนและคำเสนอแนะเรียบร้อยแล้ว', 'success');
+                }
+            });
+        }
+
+        function renderAdminStudents() {
+            const tableBody = document.getElementById('admStudentsTableBody');
+            if (!tableBody) return;
+
+            const roomFilter = document.getElementById('admStudentRoomSelect')?.value || 'all';
+            let students = state.students;
+            if (roomFilter !== 'all') {
+                students = students.filter(s => s.room === roomFilter);
+            }
+
+            const countLabel = document.getElementById('admStudentCountLabel');
+            if (countLabel) countLabel.innerText = `จำนวนนักเรียน ${students.length} คน`;
+
+            if (students.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-gray-400">ไม่พบรายชื่อนักเรียนตามเงื่อนไขที่เลือก</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = students.map(s => `
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="p-3 font-mono font-bold text-brand-navy">${s.id}</td>
+                    <td class="p-3 font-medium text-gray-800">${s.name}</td>
+                    <td class="p-3 text-xs text-gray-500">${s.room || '-'}</td>
+                    <td class="p-3 text-xs text-gray-500">${s.number || '-'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderAdminLiveContent() {
+            const list = document.getElementById('admLiveContentList');
+            if (!list) return;
+
+            let html = '';
+
+            html += `<div class="text-xs font-bold text-brand-navy uppercase tracking-wider mb-2 flex items-center"><i class="fa-solid fa-book-open mr-1.5"></i> ใบความรู้ (${state.knowledge.length})</div>`;
+            if (state.knowledge.length === 0) {
+                html += `<div class="text-xs text-gray-400 py-2 pl-4">ยังไม่มีใบความรู้</div>`;
+            } else {
+                html += state.knowledge.map(k => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 text-xs mb-2">
+                        <div>
+                            <span class="font-bold text-gray-800">${k.title}</span>
+                            <span class="text-gray-500 ml-2">(${k.unit || 'ทั่วไป'} | ${k.type || 'PDF'})</span>
+                        </div>
+                        <button onclick="deleteKnowledge('${k.id}')" class="text-red-500 hover:text-red-700 p-1 font-medium transition" title="ลบใบความรู้นี้">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            html += `<div class="text-xs font-bold text-brand-emerald uppercase tracking-wider mt-4 mb-2 flex items-center"><i class="fa-solid fa-tasks mr-1.5"></i> ใบกิจกรรม (${state.activities.length})</div>`;
+            if (state.activities.length === 0) {
+                html += `<div class="text-xs text-gray-400 py-2 pl-4">ยังไม่มีใบกิจกรรม</div>`;
+            } else {
+                html += state.activities.map(a => `
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 text-xs mb-2">
+                        <div>
+                            <span class="font-bold text-emerald-800">${a.title}</span>
+                            <span class="text-gray-500 ml-2">(${a.unit || 'ทั่วไป'} | กำหนดส่ง: ${a.dueDate || 'ไม่ระบุ'})</span>
+                        </div>
+                        <button onclick="deleteActivity('${a.id}')" class="text-red-500 hover:text-red-700 p-1 font-medium transition" title="ลบใบกิจกรรมนี้">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            list.innerHTML = html;
+            updateKnowledgeUnitFilter();
+        }
+
+        function updateKnowledgeUnitFilter() {
+            const select = document.getElementById('stdKnowledgeUnitFilter');
+            if (!select) return;
+            const units = [...new Set(state.knowledge.map(k => k.unit || 'ทั่วไป'))];
+            let options = `<option value="all">-- แสดงทุกหน่วยการเรียนรู้ --</option>`;
+            units.forEach(u => {
+                options += `<option value="${u}">${u}</option>`;
+            });
+            select.innerHTML = options;
+        }
+
+        function handleAddKnowledge() {
+            const title = document.getElementById('addKTitle').value.trim();
+            const unit = document.getElementById('addKUnit').value.trim();
+            const type = document.getElementById('addKType').value;
+            const url = document.getElementById('addKUrl').value.trim();
+            const desc = document.getElementById('addKDesc').value.trim();
+
+            if (!title || !url) {
+                return Swal.fire('เตือน', 'กรุณากรอกชื่อใบความรู้และ URL ลิงก์สื่อการเรียนรู้', 'warning');
+            }
+
+            const item = { id: 'k-' + Date.now(), title, unit: unit || 'หน่วยที่ 1', type, url, desc };
+            state.knowledge.push(item);
+            saveLocalState();
+            forceSyncMaterialsToSheet();
+            renderAdminLiveContent();
+            renderStudentKnowledge();
+
+            document.getElementById('addKTitle').value = '';
+            document.getElementById('addKUnit').value = '';
+            document.getElementById('addKUrl').value = '';
+            document.getElementById('addKDesc').value = '';
+
+            Swal.fire('สำเร็จ', 'เพิ่มใบความรู้และซิงค์ข้อมูลเรียบร้อยแล้ว', 'success');
+        }
+
+        function handleAddActivity() {
+            const title = document.getElementById('addATitle').value.trim();
+            const unit = document.getElementById('addAUnit').value.trim();
+            const maxScore = document.getElementById('addAMaxScore').value;
+            const dueDate = document.getElementById('addADueDate').value;
+            const pdfUrl = document.getElementById('addAPdfUrl').value.trim();
+            const desc = document.getElementById('addADesc').value.trim();
+
+            if (!title) {
+                return Swal.fire('เตือน', 'กรุณากรอกชื่อใบกิจกรรม', 'warning');
+            }
+
+            const item = { id: 'act-' + Date.now(), title, unit: unit || 'หน่วยที่ 1', maxScore: Number(maxScore) || 10, dueDate, pdfUrl, desc };
+            state.activities.push(item);
+            saveLocalState();
+            forceSyncMaterialsToSheet();
+            renderAdminLiveContent();
+            renderStudentActivities();
+
+            document.getElementById('addATitle').value = '';
+            document.getElementById('addAUnit').value = '';
+            document.getElementById('addAPdfUrl').value = '';
+            document.getElementById('addADesc').value = '';
+
+            Swal.fire('สำเร็จ', 'เพิ่มใบกิจกรรมและซิงค์ข้อมูลเรียบร้อยแล้ว', 'success');
+        }
+
+        function deleteKnowledge(id) {
+            Swal.fire({
+                title: 'ยืนยันการลบ?',
+                text: 'รายการใบความรู้นี้จะถูกลบออกจากระบบและ Google Sheets',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'ใช่, ลบเลย',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    state.knowledge = state.knowledge.filter(k => k.id !== id);
+                    saveLocalState();
+                    forceSyncMaterialsToSheet();
+                    renderAdminLiveContent();
+                    renderStudentKnowledge();
+                    Swal.fire('ลบสำเร็จ', 'ลบใบความรู้เรียบร้อยแล้ว', 'success');
+                }
+            });
+        }
+
+        function deleteActivity(id) {
+            Swal.fire({
+                title: 'ยืนยันการลบ?',
+                text: 'รายการใบกิจกรรมนี้จะถูกลบออกจากระบบและ Google Sheets',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'ใช่, ลบเลย',
+                cancelButtonText: 'ยกเลิก'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    state.activities = state.activities.filter(a => a.id !== id);
+                    saveLocalState();
+                    forceSyncMaterialsToSheet();
+                    renderAdminLiveContent();
+                    renderStudentActivities();
+                    Swal.fire('ลบสำเร็จ', 'ลบใบกิจกรรมเรียบร้อยแล้ว', 'success');
+                }
+            });
+        }
+
+        // =========================================================================
+        // 7. GOOGLE APPS SCRIPT CLOUD SYNC CONTROLLERS
+        // =========================================================================
+        function saveScriptUrlSetting() {
+            const input = document.getElementById('settingScriptUrlInput');
+            const url = input ? input.value.trim() : '';
+            state.scriptUrl = url;
+            localStorage.setItem('dt_script_url', url);
+            Swal.fire('บันทึกสำเร็จ', 'อัปเดต Web App URL เรียบร้อยแล้ว', 'success');
+            if (url) {
+                fetchCloudData(true);
+            }
+        }
+
+        function forceSyncMaterialsToSheet() {
+            if (!state.scriptUrl) {
+                return Swal.fire('แจ้งเตือน', 'กรุณาตั้งค่า Web App URL ในเมนูตั้งค่าก่อนซิงค์ Cloud', 'info');
+            }
+            syncDataToCloud({
+                action: 'syncMaterials',
+                knowledge: state.knowledge,
+                activities: state.activities
+            });
+        }
+
+        function syncDataToCloud(payload) {
+            if (!state.scriptUrl) return;
+            fetch(state.scriptUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).catch(err => console.error('Cloud Sync Error:', err));
+        }
+
+        function fetchCloudData(showFeedback = false) {
+            if (!state.scriptUrl) return;
+
+            const icon = document.getElementById('cloudStatusIcon');
+            const text = document.getElementById('cloudStatusText');
+
+            if (icon && text) {
+                icon.className = 'fa-solid fa-spinner fa-spin mr-1.5 text-amber-400';
+                text.innerText = 'กำลังซิงค์...';
+            }
+
+            fetch(state.scriptUrl)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.knowledge) {
+                        state.knowledge = data.knowledge;
+                    }
+                    if (data.activities) {
+                        state.activities = data.activities;
+                    }
+                    if (data.submissions) {
+                        state.submissions = data.submissions;
+                    }
+                    saveLocalState();
+                    if (icon && text) {
+                        icon.className = 'fa-solid fa-cloud-check mr-1.5 text-emerald-400';
+                        text.innerText = 'เชื่อมต่อระบบแล้ว';
+                    }
+                    if (state.currentUser) {
+                        renderActiveView();
+                    }
+                    if (showFeedback) {
+                        Swal.fire('ซิงค์ข้อมูลสำเร็จ', 'ดึงข้อมูลล่าสุดจาก Google Sheets เรียบร้อยแล้ว', 'success');
+                    }
+                })
+                .catch(err => {
+                    console.error('Fetch error:', err);
+                    if (icon && text) {
+                        icon.className = 'fa-solid fa-cloud-xmark mr-1.5 text-red-400';
+                        text.innerText = 'ออฟไลน์ (Local)';
+                    }
+                    if (showFeedback) {
+                        Swal.fire('ข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อ Google Sheets ได้ ตรวจสอบ URL หรืออินเทอร์เน็ต', 'error');
+                    }
+                });
         }
 
         // =========================================================================
