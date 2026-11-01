@@ -64,16 +64,24 @@
                     </div>
                 </div>
 
-                <!-- User Profile / Logout -->
-                <div id="userHeaderInfo" class="hidden flex items-center space-x-3">
-                    <div class="text-right hidden sm:block">
-                        <p id="navUserName" class="text-sm font-semibold"></p>
-                        <p id="navUserRole" class="text-xs text-green-300"></p>
+                <!-- Cloud Sync Status Indicator -->
+                <div class="flex items-center space-x-3">
+                    <div id="cloudSyncIndicator" class="hidden sm:flex items-center text-xs bg-white/10 px-3 py-1 rounded-full border border-white/20 text-blue-100">
+                        <i id="cloudSyncIcon" class="fa-solid fa-cloud-check mr-1.5 text-green-400"></i>
+                        <span id="cloudSyncText">ระบบซิงค์ Google Sheets</span>
                     </div>
-                    <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center space-x-1 shadow-sm">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                        <span class="hidden sm:inline">ออกจากระบบ</span>
-                    </button>
+
+                    <!-- User Profile / Logout -->
+                    <div id="userHeaderInfo" class="hidden flex items-center space-x-3">
+                        <div class="text-right hidden sm:block">
+                            <p id="navUserName" class="text-sm font-semibold"></p>
+                            <p id="navUserRole" class="text-xs text-green-300"></p>
+                        </div>
+                        <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition flex items-center space-x-1 shadow-sm">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span class="hidden sm:inline">ออกจากระบบ</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -216,10 +224,14 @@
                 <div>
                     <span class="bg-ipst-green text-white text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-wider">แผงควบคุมระบบสำหรับผู้สอน (Admin)</span>
                     <h2 class="text-2xl font-bold mt-2 font-heading">ระบบจัดการวิชาการออกแบบและเทคโนโลยี ว23104</h2>
-                    <p class="text-slate-300 text-sm mt-1">จัดการสื่อการสอน ตรวจงานนักเรียน และนำเข้าข้อมูลนักเรียน</p>
+                    <p class="text-slate-300 text-sm mt-1">จัดการสื่อการสอน ตรวจงานนักเรียน ซิงค์ Google Sheets แบบเรียลไทม์</p>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <button onclick="exportDataToExcel()" class="bg-ipst-green hover:bg-ipst-greenDark text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 shadow">
+                    <button onclick="syncDataFromCloud(true)" class="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 shadow">
+                        <i class="fa-solid fa-rotate"></i>
+                        <span>รีเฟรชข้อมูล Cloud</span>
+                    </button>
+                    <button onclick="exportDataToExcel()" class="bg-ipst-green hover:bg-ipst-greenDark text-white px-3.5 py-2 rounded-lg text-sm font-medium transition flex items-center space-x-2 shadow">
                         <i class="fa-solid fa-file-excel"></i>
                         <span>ส่งออก Excel</span>
                     </button>
@@ -264,7 +276,7 @@
                     <i class="fa-solid fa-clipboard-check"></i> <span>1. ระบบตรวจงานนักเรียน</span>
                 </button>
                 <button id="aTab2Btn" onclick="switchAdminTab('content')" class="py-3 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-ipst-blue font-heading flex items-center space-x-2 whitespace-nowrap">
-                    <i class="fa-solid fa-folder-plus"></i> <span>2. จัดการใบความรู้ & กิจกรรม</span>
+                    <i class="fa-solid fa-folder-plus"></i> <span>2. จัดการใบความรู้ & กิจกรรม (ซิงค์ Cloud)</span>
                 </button>
                 <button id="aTab3Btn" onclick="switchAdminTab('students')" class="py-3 px-4 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-ipst-blue font-heading flex items-center space-x-2 whitespace-nowrap">
                     <i class="fa-solid fa-address-book"></i> <span>3. จัดการรายชื่อนักเรียน (Excel)</span>
@@ -327,14 +339,14 @@
                 </div>
             </div>
 
-            <!-- Admin Tab Content 2: Manage Course Items -->
+            <!-- Admin Tab Content 2: Manage Course Items (Cloud Sync Option 2) -->
             <div id="adminContentTab" class="hidden space-y-6">
                 <!-- Add Knowledge Form -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
                         <h3 class="text-lg font-bold text-ipst-blue font-heading border-b pb-2 flex items-center justify-between">
                             <span><i class="fa-solid fa-plus-circle mr-2"></i>เพิ่มใบความรู้</span>
-                            <span class="text-xs font-normal text-gray-500">สื่อการเรียนรู้</span>
+                            <span class="text-xs font-semibold bg-green-100 text-green-700 px-2 py-0.5 rounded"><i class="fa-solid fa-cloud-arrow-up mr-1"></i>ซิงค์ Google Sheets</span>
                         </h3>
                         <form onsubmit="handleAddKnowledge(event)" class="space-y-3">
                             <div>
@@ -368,7 +380,7 @@
                                 <textarea id="kDesc" rows="2" placeholder="สรุปเนื้อหาสำคัญพอสังเขป" class="w-full text-sm p-2 border border-gray-300 rounded-lg"></textarea>
                             </div>
                             <button type="submit" class="w-full bg-ipst-blue hover:bg-ipst-blueDark text-white font-medium py-2 rounded-lg text-sm transition">
-                                <i class="fa-solid fa-save mr-1"></i> บันทึกใบความรู้
+                                <i class="fa-solid fa-cloud-arrow-up mr-1"></i> บันทึกใบความรู้ & ซิงค์ขึ้น Cloud
                             </button>
                         </form>
                     </div>
@@ -377,7 +389,7 @@
                     <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
                         <h3 class="text-lg font-bold text-ipst-green font-heading border-b pb-2 flex items-center justify-between">
                             <span><i class="fa-solid fa-file-circle-plus mr-2"></i>เพิ่มใบกิจกรรม</span>
-                            <span class="text-xs font-normal text-gray-500">ภาระงาน</span>
+                            <span class="text-xs font-semibold bg-green-100 text-green-700 px-2 py-0.5 rounded"><i class="fa-solid fa-cloud-arrow-up mr-1"></i>ซิงค์ Google Sheets</span>
                         </h3>
                         <form onsubmit="handleAddActivity(event)" class="space-y-3">
                             <div>
@@ -413,7 +425,7 @@
                                 <textarea id="aDesc" rows="2" placeholder="รายละเอียดขั้นตอนคำสั่งในการทำงาน" class="w-full text-sm p-2 border border-gray-300 rounded-lg"></textarea>
                             </div>
                             <button type="submit" class="w-full bg-ipst-green hover:bg-ipst-greenDark text-white font-medium py-2 rounded-lg text-sm transition">
-                                <i class="fa-solid fa-save mr-1"></i> บันทึกใบกิจกรรม
+                                <i class="fa-solid fa-cloud-arrow-up mr-1"></i> บันทึกใบกิจกรรม & ซิงค์ขึ้น Cloud
                             </button>
                         </form>
                     </div>
@@ -421,7 +433,12 @@
 
                 <!-- Existing Items List Table -->
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-                    <h4 class="font-bold text-gray-800 font-heading mb-3">รายการสื่อและใบกิจกรรมในระบบ</h4>
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="font-bold text-gray-800 font-heading">รายการสื่อและใบกิจกรรมในระบบ (เรียลไทม์)</h4>
+                        <button onclick="syncMaterialsToCloud()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg transition flex items-center">
+                            <i class="fa-solid fa-cloud-arrow-up mr-1 text-ipst-blue"></i> บังคับซิงค์เอกสารทั้งหมดไปยัง Google Sheets
+                        </button>
+                    </div>
                     <div id="adminContentList" class="space-y-3">
                         <!-- Items rendered here -->
                     </div>
@@ -490,12 +507,12 @@
                 </div>
             </div>
 
-            <!-- Admin Tab Content 4: Settings & Google Sheets Webhook -->
+            <!-- Admin Tab Content 4: Settings & Google Sheets Webhook (Option 2) -->
             <div id="adminSettingsTab" class="hidden space-y-6">
                 <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
-                    <h3 class="text-lg font-bold text-gray-800 font-heading"><i class="fa-brands fa-google-drive text-green-600 mr-2"></i>การเชื่อมต่อ Google Sheets API</h3>
+                    <h3 class="text-lg font-bold text-gray-800 font-heading"><i class="fa-brands fa-google-drive text-green-600 mr-2"></i>การเชื่อมต่อ Google Sheets API (ทางเลือกที่ 2)</h3>
                     <p class="text-sm text-gray-600">
-                        คุณสามารถเชื่อมต่อระบบเข้ากับ Google Sheets ผ่าน Google Apps Script เพื่อให้ทุกการส่งงานบันทึกลงสเปรดชีตของคุณได้แบบ Real-time
+                        เมื่อกรอก URL นี้ ระบบจะบันทึกการส่งงาน ผลการตรวจงาน รวมถึง **ซิงค์ใบความรู้และใบกิจกรรม** ไปยัง Google Sheets เพื่อให้มือถือและคอมพิวเตอร์ของนักเรียนทุกคนเห็นข้อมูลตรงกันตลอดเวลา
                     </p>
 
                     <div class="space-y-3">
@@ -503,33 +520,114 @@
                             <label class="block text-xs font-semibold text-gray-600 mb-1">Google Apps Script Web App URL</label>
                             <input type="url" id="googleScriptUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full text-sm p-2.5 border border-gray-300 rounded-lg">
                         </div>
-                        <button onclick="saveGoogleScriptUrl()" class="bg-ipst-blue hover:bg-ipst-blueDark text-white text-sm font-medium px-4 py-2 rounded-lg transition">
-                            <i class="fa-solid fa-link mr-1"></i> บันทึก URL เชื่อมต่อ
-                        </button>
+                        <div class="flex space-x-2">
+                            <button onclick="saveGoogleScriptUrl()" class="bg-ipst-blue hover:bg-ipst-blueDark text-white text-sm font-medium px-4 py-2 rounded-lg transition shadow-sm">
+                                <i class="fa-solid fa-link mr-1"></i> บันทึก URL & ดึงข้อมูลทันที
+                            </button>
+                            <button onclick="testGoogleScriptConnection()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium px-4 py-2 rounded-lg transition">
+                                <i class="fa-solid fa-vial mr-1"></i> ทดสอบการเชื่อมต่อ
+                            </button>
+                        </div>
                     </div>
 
                     <div class="mt-6 border-t pt-4">
-                        <h4 class="font-bold text-gray-700 font-heading text-sm mb-2">คำแนะนำและโค้ด Google Apps Script (GS Code)</h4>
-                        <p class="text-xs text-gray-500 mb-2">ก๊อปปี้โค้ดด้านล่างนี้ไปวางใน Google Apps Script ใน Google Sheet ของคุณ:</p>
-                        <pre class="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto font-mono leading-relaxed">
+                        <h4 class="font-bold text-gray-700 font-heading text-sm mb-2">โค้ด Google Apps Script (ฉบับสมบูรณ์สำหรับทางเลือกที่ 2)</h4>
+                        <p class="text-xs text-gray-500 mb-2">นำโค้ดด้านล่างนี้ไปวางใน Google Apps Script ใน Google Sheets เพื่อรองรับการซิงค์เอกสารและส่งงาน:</p>
+                        <pre class="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto font-mono leading-relaxed custom-scrollbar">
+// โค้ด Google Apps Script สำหรับทางเลือกที่ 2 (ซิงค์ใบความรู้ กิจกรรม และการส่งงาน)
+
+function doGet(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  var kSheet = ss.getSheetByName("Knowledge") || ss.insertSheet("Knowledge");
+  var aSheet = ss.getSheetByName("Activities") || ss.insertSheet("Activities");
+  var sSheet = ss.getSheetByName("Submissions") || ss.insertSheet("Submissions");
+  
+  var kData = kSheet.getDataRange().getValues();
+  var knowledge = [];
+  for(var i=1; i&lt;kData.length; i++){
+    if(kData[i][0]) {
+      knowledge.push({ id: kData[i][0], title: kData[i][1], unit: kData[i][2], type: kData[i][3], url: kData[i][4], desc: kData[i][5] });
+    }
+  }
+  
+  var aData = aSheet.getDataRange().getValues();
+  var activities = [];
+  for(var j=1; j&lt;aData.length; j++){
+    if(aData[j][0]) {
+      activities.push({ id: aData[j][0], title: aData[j][1], unit: aData[j][2], maxScore: aData[j][3], dueDate: aData[j][4], pdfUrl: aData[j][5], desc: aData[j][6] });
+    }
+  }
+  
+  var sData = sSheet.getDataRange().getValues();
+  var submissions = [];
+  for(var k=1; k&lt;sData.length; k++){
+    if(sData[k][0]) {
+      submissions.push({
+        id: sData[k][0], submitDate: sData[k][1], studentId: sData[k][2], studentName: sData[k][3], room: sData[k][4],
+        activityTitle: sData[k][5], fileUrl: sData[k][6], status: sData[k][7], score: sData[k][8], feedback: sData[k][9], activityId: sData[k][10]
+      });
+    }
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({
+    result: 'success', knowledge: knowledge, activities: activities, submissions: submissions
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
 function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  var data = JSON.parse(e.postData.contents);
-  
-  sheet.appendRow([
-    new Date(),
-    data.studentId,
-    data.studentName,
-    data.room,
-    data.activityTitle,
-    data.fileUrl,
-    data.status || 'รอตรวจ',
-    data.score || '-',
-    data.feedback || ''
-  ]);
-  
-  return ContentService.createTextOutput(JSON.stringify({"result": "success"}))
-    .setMimeType(ContentService.MimeType.JSON);
+  var lock = LockService.getScriptLock();
+  lock.tryLock(10000);
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var data = JSON.parse(e.postData.contents);
+    
+    if (data.action === "syncMaterials") {
+      var kSheet = ss.getSheetByName("Knowledge") || ss.insertSheet("Knowledge");
+      kSheet.clear();
+      kSheet.appendRow(["ID", "Title", "Unit", "Type", "URL", "Description"]);
+      if (data.knowledge &amp;&amp; data.knowledge.length &gt; 0) {
+        data.knowledge.forEach(function(k) { kSheet.appendRow([k.id, k.title, k.unit, k.type, k.url, k.desc || '']); });
+      }
+      
+      var aSheet = ss.getSheetByName("Activities") || ss.insertSheet("Activities");
+      aSheet.clear();
+      aSheet.appendRow(["ID", "Title", "Unit", "MaxScore", "DueDate", "PdfUrl", "Description"]);
+      if (data.activities &amp;&amp; data.activities.length &gt; 0) {
+        data.activities.forEach(function(a) { aSheet.appendRow([a.id, a.title, a.unit, a.maxScore, a.dueDate, a.pdfUrl || '', a.desc || '']); });
+      }
+      return ContentService.createTextOutput(JSON.stringify({ result: "success" })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (data.action === "submitWork") {
+      var sSheet = ss.getSheetByName("Submissions") || ss.insertSheet("Submissions");
+      if (sSheet.getLastRow() === 0) {
+        sSheet.appendRow(["SubID", "SubmitDate", "StudentID", "StudentName", "Room", "ActivityTitle", "FileUrl", "Status", "Score", "Feedback", "ActivityID"]);
+      }
+      sSheet.appendRow([
+        data.id || 'sub-' + Date.now(), data.submitDate || new Date(), data.studentId, data.studentName, data.room, data.activityTitle, data.fileUrl, "รอตรวจ", "", "", data.activityId
+      ]);
+      return ContentService.createTextOutput(JSON.stringify({ result: "success" })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    if (data.action === "gradeWork") {
+      var sSheet = ss.getSheetByName("Submissions") || ss.insertSheet("Submissions");
+      var rows = sSheet.getDataRange().getValues();
+      for (var i = 1; i &lt; rows.length; i++) {
+        if (rows[i][0] == data.id || (rows[i][2] == data.studentId &amp;&amp; rows[i][10] == data.activityId)) {
+          sSheet.getRange(i + 1, 8).setValue("ตรวจแล้ว");
+          sSheet.getRange(i + 1, 9).setValue(data.score);
+          sSheet.getRange(i + 1, 10).setValue(data.feedback);
+          break;
+        }
+      }
+      return ContentService.createTextOutput(JSON.stringify({ result: "success" })).setMimeType(ContentService.MimeType.JSON);
+    }
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ result: "error", error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
+  }
 }
                         </pre>
                     </div>
@@ -712,6 +810,91 @@ function doPost(e) {
             localStorage.setItem('dt_submissions', JSON.stringify(appState.submissions));
         }
 
+        // --- REAL-TIME GOOGLE SHEETS CLOUD SYNC (OPTION 2) ---
+        async function syncDataFromCloud(isManual = false) {
+            if (!appState.scriptUrl) {
+                if (isManual) Swal.fire({ icon: 'info', title: 'ยังไม่ได้เชื่อมต่อ Google Sheets', text: 'กรุณากรอก Web App URL ในเมนู Admin -> การเชื่อมต่อ Google Sheets' });
+                return;
+            }
+
+            const icon = document.getElementById('cloudSyncIcon');
+            const text = document.getElementById('cloudSyncText');
+            if (icon && text) {
+                icon.className = "fa-solid fa-arrows-rotate fa-spin mr-1.5 text-yellow-300";
+                text.innerText = "กำลังซิงค์ Cloud...";
+            }
+
+            try {
+                const response = await fetch(appState.scriptUrl);
+                const result = await response.json();
+
+                if (result.result === 'success') {
+                    if (result.knowledge && Array.isArray(result.knowledge) && result.knowledge.length > 0) {
+                        appState.knowledge = result.knowledge;
+                    }
+                    if (result.activities && Array.isArray(result.activities) && result.activities.length > 0) {
+                        appState.activities = result.activities;
+                    }
+                    if (result.submissions && Array.isArray(result.submissions)) {
+                        appState.submissions = result.submissions;
+                    }
+                    saveData();
+
+                    if (icon && text) {
+                        icon.className = "fa-solid fa-cloud-check mr-1.5 text-green-400";
+                        text.innerText = "เชื่อมต่อ Google Sheets แล้ว";
+                    }
+
+                    if (appState.currentUser) {
+                        if (appState.currentUser.role === 'student') {
+                            renderKnowledgeList();
+                            renderActivityList();
+                            renderStudentStatusTable();
+                        } else {
+                            updateAdminStats();
+                            renderAdminGradingTable();
+                            renderAdminContentList();
+                        }
+                    }
+
+                    if (isManual) {
+                        Swal.fire({ icon: 'success', title: 'ซิงค์ข้อมูล Cloud สำเร็จ!', timer: 1200, showConfirmButton: false });
+                    }
+                }
+            } catch (err) {
+                console.warn('Cloud sync error (fallback to local):', err);
+                if (icon && text) {
+                    icon.className = "fa-solid fa-cloud-arrow-down mr-1.5 text-blue-300";
+                    text.innerText = "ใช้งานโหมด Offline/Local";
+                }
+                if (isManual) {
+                    Swal.fire({ icon: 'error', title: 'การซิงค์ล้มเหลว', text: 'ไม่สามารถติดต่อ Google Script URL ได้ ตรวจสอบสิทธิ์การเข้าถึงว่าเป็น Anyone' });
+                }
+            }
+        }
+
+        async function syncMaterialsToCloud() {
+            if (!appState.scriptUrl) return;
+
+            const payload = {
+                action: 'syncMaterials',
+                knowledge: appState.knowledge,
+                activities: appState.activities
+            };
+
+            try {
+                await fetch(appState.scriptUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                console.log('Synced materials to cloud Google Sheets successfully');
+            } catch (err) {
+                console.error('Error syncing materials to cloud:', err);
+            }
+        }
+
         // --- AUTHENTICATION LOGIC ---
         function switchLoginTab(role) {
             appState.loginTab = role;
@@ -860,7 +1043,7 @@ function doPost(e) {
             const student = appState.currentUser.data;
 
             appState.activities.forEach(act => {
-                const sub = appState.submissions.find(s => s.activityId === act.id && s.studentId === student.id);
+                const sub = appState.submissions.find(s => (s.activityId === act.id || s.activityTitle === act.title) && s.studentId === student.id);
                 let statusBadge = '<span class="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-full font-semibold">ยังไม่ส่งงาน</span>';
                 
                 if (sub) {
@@ -911,7 +1094,7 @@ function doPost(e) {
             let checkedCount = 0;
 
             appState.activities.forEach(act => {
-                const sub = appState.submissions.find(s => s.activityId === act.id && s.studentId === student.id);
+                const sub = appState.submissions.find(s => (s.activityId === act.id || s.activityTitle === act.title) && s.studentId === student.id);
                 
                 let submitStatus = '<span class="text-red-500 font-semibold text-xs"><i class="fa-solid fa-xmark mr-1"></i>ยังไม่ส่ง</span>';
                 let fileLink = '-';
@@ -961,7 +1144,7 @@ function doPost(e) {
             document.getElementById('modalStudentNote').value = '';
 
             const student = appState.currentUser.data;
-            const sub = appState.submissions.find(s => s.activityId === act.id && s.studentId === student.id);
+            const sub = appState.submissions.find(s => (s.activityId === act.id || s.activityTitle === act.title) && s.studentId === student.id);
             if (sub) {
                 document.getElementById('modalFileUrl').value = sub.fileUrl;
                 document.getElementById('modalStudentNote').value = sub.note || '';
@@ -988,6 +1171,7 @@ function doPost(e) {
             appState.submissions = appState.submissions.filter(s => !(s.activityId === actId && s.studentId === student.id));
 
             const newSub = {
+                action: 'submitWork',
                 id: 'sub-' + Date.now(),
                 activityId: actId,
                 activityTitle: act.title,
@@ -1015,7 +1199,7 @@ function doPost(e) {
             }
 
             closeSubmitModal();
-            Swal.fire({ icon: 'success', title: 'ส่งงานเรียบร้อยแล้ว!', text: 'ข้อมูลบันทึกในระบบเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
+            Swal.fire({ icon: 'success', title: 'ส่งงานเรียบร้อยแล้ว!', text: 'ข้อมูลซิงค์เข้าสู่ระบบเรียบร้อย', timer: 1500, showConfirmButton: false });
 
             renderActivityList();
             renderStudentStatusTable();
@@ -1072,7 +1256,7 @@ function doPost(e) {
                 appState.activities.forEach(act => {
                     if (actFilter !== 'all' && act.id.toString() !== actFilter) return;
 
-                    const sub = appState.submissions.find(s => s.activityId === act.id && s.studentId === std.id);
+                    const sub = appState.submissions.find(s => (s.activityId === act.id || s.activityTitle === act.title) && s.studentId === std.id);
                     
                     let subStatus = 'unsubmitted';
                     if (sub) {
@@ -1143,12 +1327,12 @@ function doPost(e) {
             const sub = appState.submissions.find(s => s.id === subId);
             if (!sub) return;
 
-            const act = appState.activities.find(a => a.id === sub.activityId);
+            const act = appState.activities.find(a => a.id === sub.activityId || a.title === sub.activityTitle);
             const std = getStudentInfo(sub.studentId);
 
             document.getElementById('gradeSubmissionId').value = sub.id;
             document.getElementById('gradeStudentName').innerText = `${std.name} (ม.${std.room})`;
-            document.getElementById('gradeActivityName').innerText = act ? act.title : '';
+            document.getElementById('gradeActivityName').innerText = act ? act.title : sub.activityTitle;
             document.getElementById('gradeViewFileLink').href = sub.fileUrl;
             document.getElementById('gradeMaxScoreText').innerText = act ? act.maxScore : 10;
             document.getElementById('gradeScore').value = sub.score || '';
@@ -1173,6 +1357,23 @@ function doPost(e) {
                 sub.feedback = feedback;
                 sub.status = 'checked';
                 saveData();
+
+                if (appState.scriptUrl) {
+                    fetch(appState.scriptUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            action: 'gradeWork',
+                            id: sub.id,
+                            studentId: sub.studentId,
+                            activityId: sub.activityId,
+                            score: score,
+                            feedback: feedback
+                        })
+                    }).catch(err => console.log('Grade sync error:', err));
+                }
+
                 Swal.fire({ icon: 'success', title: 'บันทึกการตรวจงานสำเร็จ', timer: 1200, showConfirmButton: false });
             }
 
@@ -1181,7 +1382,7 @@ function doPost(e) {
             renderAdminGradingTable();
         }
 
-        // --- ADMIN MANAGING CONTENT (KNOWLEDGE & ACTIVITIES) ---
+        // --- ADMIN MANAGING CONTENT & CLOUD SYNC (OPTION 2) ---
         function handleAddKnowledge(e) {
             e.preventDefault();
             const title = document.getElementById('kTitle').value.trim();
@@ -1201,8 +1402,10 @@ function doPost(e) {
 
             appState.knowledge.push(newItem);
             saveData();
+            syncMaterialsToCloud();
+
             e.target.reset();
-            Swal.fire({ icon: 'success', title: 'เพิ่มใบความรู้เรียบร้อย', timer: 1200, showConfirmButton: false });
+            Swal.fire({ icon: 'success', title: 'บันทึกใบความรู้สำเร็จ', text: 'ซิงค์ข้อมูลขึ้น Google Sheets เรียบร้อย', timer: 1400, showConfirmButton: false });
             renderAdminContentList();
         }
 
@@ -1227,8 +1430,10 @@ function doPost(e) {
 
             appState.activities.push(newAct);
             saveData();
+            syncMaterialsToCloud();
+
             e.target.reset();
-            Swal.fire({ icon: 'success', title: 'เพิ่มใบกิจกรรมเรียบร้อย', timer: 1200, showConfirmButton: false });
+            Swal.fire({ icon: 'success', title: 'บันทึกใบกิจกรรมสำเร็จ', text: 'ซิงค์ข้อมูลขึ้น Google Sheets เรียบร้อย', timer: 1400, showConfirmButton: false });
             renderAdminContentList();
             populateAdminActivityFilter();
         }
@@ -1265,17 +1470,19 @@ function doPost(e) {
         }
 
         function deleteKnowledge(id) {
-            if (confirm('ยืนยันลบใบความรู้นี้?')) {
+            if (confirm('ยืนยันลบใบความรู้นี้ออกจากระบบและ Cloud?')) {
                 appState.knowledge = appState.knowledge.filter(k => k.id !== id);
                 saveData();
+                syncMaterialsToCloud();
                 renderAdminContentList();
             }
         }
 
         function deleteActivity(id) {
-            if (confirm('ยืนยันลบใบกิจกรรมนี้?')) {
+            if (confirm('ยืนยันลบใบกิจกรรมนี้ออกจากระบบและ Cloud?')) {
                 appState.activities = appState.activities.filter(a => a.id !== id);
                 saveData();
+                syncMaterialsToCloud();
                 renderAdminContentList();
                 populateAdminActivityFilter();
             }
@@ -1393,7 +1600,7 @@ function doPost(e) {
 
             appState.students.forEach(std => {
                 appState.activities.forEach(act => {
-                    const sub = appState.submissions.find(s => s.activityId === act.id && s.studentId === std.id);
+                    const sub = appState.submissions.find(s => (s.activityId === act.id || s.activityTitle === act.title) && s.studentId === std.id);
                     exportData.push({
                         "รหัสนักเรียน": std.id,
                         "ชื่อ-นามสกุล": std.name,
@@ -1422,13 +1629,24 @@ function doPost(e) {
             const url = document.getElementById('googleScriptUrl').value.trim();
             appState.scriptUrl = url;
             localStorage.setItem('dt_script_url', url);
-            Swal.fire({ icon: 'success', title: 'บันทึก URL สำเร็จ', text: 'ระบบจะส่งข้อมูลไปยัง Google Sheet ตาม URL นี้' });
+            Swal.fire({ icon: 'success', title: 'บันทึก URL สำเร็จ', text: 'กำลังเริ่มการซิงค์ข้อมูลกับ Google Sheets...' });
+            syncDataFromCloud(true);
+        }
+
+        function testGoogleScriptConnection() {
+            if (!appState.scriptUrl) {
+                Swal.fire({ icon: 'warning', title: 'ยังไม่ได้กรอก URL', text: 'กรุณากรอก Web App URL ก่อนกดทดสอบ' });
+                return;
+            }
+            syncDataFromCloud(true);
         }
 
         // --- INITIALIZATION ON LOAD ---
         window.onload = function() {
             if (appState.scriptUrl) {
                 document.getElementById('googleScriptUrl').value = appState.scriptUrl;
+                document.getElementById('cloudSyncIndicator').classList.remove('hidden');
+                syncDataFromCloud(false);
             }
         };
     </script>
