@@ -618,7 +618,11 @@ function doPost(e) {
 
     <!-- JavaScript Logic & Built-in Student Data (407 Students) -->
     <script>
-        // --- GENERATE ALL 407 STUDENTS FOR M.3/1 TO M.3/11 ---
+        // --- REALISTIC THAI NAME GENERATOR FOR 407 STUDENTS ---
+        const firstNamesMale = ["กฤษฎา", "ชยพล", "ณัฐภัทร", "ธนกฤต", "ปัณณธร", "พงศกร", "ภานุวัฒน์", "เมธาสิทธิ์", "วรโชติ", "ศุภกิตติ์", "อภิวิชญ์", "กิตติพงษ์", "จิรภัทร", "ชินดนัย", "ณภัทร", "ทศพร", "นพดล", "ปิยวัฒน์", "พงษ์เพชร", "ภานุเดช", "รชต", "วรเมธ", "ศรัณย์", "อัครวินท์", "กฤษณพงศ์", "เจษฎา", "ชานนท์", "ธนบดี", "นพรัตน์", "พัชรพล"];
+        const firstNamesFemale = ["กัญญาณัฐ", "จิราพร", "ชลธิชา", "ณิชาภัทร", "ธัญลักษณ์", "ปรียาภัทร", "พิมพิกา", "ภัทรวดี", "มัญชุสา", "วรัญญา", "ศุภิสรา", "อริสรา", "กานต์ธิดา", "จุฑามาศ", "ชนิกานต์", "ณัฐธิดา", "ทิพวรรณ", "นภัสสร", "ปาณิสรา", "พิชญา", "ภัทราพร", "รวิตา", "วริศรา", "สิริกร", "กัญญารัตน์", "จิรชญา", "ชญานิษฐ์", "ธนพร", "นภัสวรรณ", "พิมมาดา"];
+        const lastNames = ["ใหญ่วงค์", "สุวรรณ", "บุญมี", "วงค์ใหญ่", "ใจดี", "ชัยชนะ", "ปัญญาวงศ์", "วัฒนกุล", "รัตนจินดา", "เจริญสุข", "ศิริวัฒน์", "สมบูรณ์", "แก้วมณี", "คงเจริญ", "สิริกุล", "ทองคำ", "ดวงแก้ว", "สุขประเสริฐ", "นิมิตมงคล", "พงษ์ประเสริฐ", "แก้วกัลยา", "ศรีวิชัย", "คำมา", "ปัญญาฤทธิ์"];
+
         function generateAllStudents() {
             const ranges = [
                 { room: '3/1', start: 31337, count: 36 },
@@ -635,19 +639,36 @@ function doPost(e) {
             ];
 
             let list = [];
+            let globalIndex = 0;
+
             ranges.forEach(r => {
                 for (let i = 0; i < r.count; i++) {
                     const stdId = String(r.start + i);
                     const stdNum = i + 1;
+                    const isMale = (globalIndex % 2 === 0);
+                    const prefix = isMale ? (stdNum % 3 === 0 ? "นาย" : "ด.ช.") : (stdNum % 3 === 0 ? "นางสาว" : "ด.ญ.");
+                    const fnArray = isMale ? firstNamesMale : firstNamesFemale;
+                    
+                    const fn = fnArray[globalIndex % fnArray.length];
+                    const ln = lastNames[(globalIndex * 7) % lastNames.length];
+                    
                     list.push({
                         id: stdId,
-                        name: `นักเรียน ม.${r.room} (เลขที่ ${stdNum})`,
+                        name: `${prefix}${fn} ${ln}`,
                         room: r.room,
                         number: stdNum
                     });
+                    globalIndex++;
                 }
             });
             return list;
+        }
+
+        // --- CLEAR OLD CACHE SYSTEM (V3 UPDATE) ---
+        if (localStorage.getItem('dt_students') || localStorage.getItem('dt_students_v2')) {
+            localStorage.removeItem('dt_students');
+            localStorage.removeItem('dt_students_v2');
+            localStorage.removeItem('dt_students_v3');
         }
 
         const initialKnowledge = [
@@ -661,22 +682,31 @@ function doPost(e) {
             { id: 102, title: 'ใบกิจกรรมที่ 2.1 ระบุปัญหาและกำหนดกรอบของปัญหา', unit: 'หน่วยที่ 2', maxScore: 10, dueDate: '2026-07-01', pdfUrl: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', desc: 'ใช้เทคนิค 5W1H ในการระบุปัญหาในโรงเรียนหรือชุมชน' }
         ];
 
-        const initialSubmissions = [];
+        const masterStudentList = generateAllStudents();
 
         // --- APP STATE ---
         let appState = {
             currentUser: null,
             loginTab: 'student',
-            students: JSON.parse(localStorage.getItem('dt_students_v2')) || generateAllStudents(),
+            students: JSON.parse(localStorage.getItem('dt_students_v3')) || masterStudentList,
             knowledge: JSON.parse(localStorage.getItem('dt_knowledge')) || initialKnowledge,
             activities: JSON.parse(localStorage.getItem('dt_activities')) || initialActivities,
-            submissions: JSON.parse(localStorage.getItem('dt_submissions')) || initialSubmissions,
+            submissions: JSON.parse(localStorage.getItem('dt_submissions')) || [],
             scriptUrl: localStorage.getItem('dt_script_url') || ''
         };
 
+        // --- HELPER FUNCTION: MASTER ID MAPPING ---
+        function getStudentInfo(studentId) {
+            const found = appState.students.find(s => s.id === studentId);
+            if (found) return found;
+            const masterFound = masterStudentList.find(s => s.id === studentId);
+            if (masterFound) return masterFound;
+            return { id: studentId, name: `นักเรียนรหัส ${studentId}`, room: '3/1', number: '-' };
+        }
+
         // --- SAVE DATA TO LOCALSTORAGE ---
         function saveData() {
-            localStorage.setItem('dt_students_v2', JSON.stringify(appState.students));
+            localStorage.setItem('dt_students_v3', JSON.stringify(appState.students));
             localStorage.setItem('dt_knowledge', JSON.stringify(appState.knowledge));
             localStorage.setItem('dt_activities', JSON.stringify(appState.activities));
             localStorage.setItem('dt_submissions', JSON.stringify(appState.submissions));
@@ -719,8 +749,7 @@ function doPost(e) {
                     Swal.fire({ icon: 'error', title: 'เข้าสู่ระบบไม่สำเร็จ', text: 'ชื่อผู้ใช้หรือรหัสผ่าน Admin ไม่ถูกต้อง!' });
                 }
             } else {
-                // Student Login Check
-                const student = appState.students.find(s => s.id === username);
+                const student = getStudentInfo(username);
                 if (student && password === username) {
                     appState.currentUser = { role: 'student', data: student };
                     showDashboard();
@@ -1115,9 +1144,10 @@ function doPost(e) {
             if (!sub) return;
 
             const act = appState.activities.find(a => a.id === sub.activityId);
+            const std = getStudentInfo(sub.studentId);
 
             document.getElementById('gradeSubmissionId').value = sub.id;
-            document.getElementById('gradeStudentName').innerText = `${sub.studentName} (ม.${sub.room})`;
+            document.getElementById('gradeStudentName').innerText = `${std.name} (ม.${std.room})`;
             document.getElementById('gradeActivityName').innerText = act ? act.title : '';
             document.getElementById('gradeViewFileLink').href = sub.fileUrl;
             document.getElementById('gradeMaxScoreText').innerText = act ? act.maxScore : 10;
